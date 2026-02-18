@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-secondary-200;
+  }
+  
+  body {
+    @apply bg-secondary-50 text-secondary-900 font-sans antialiased;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-soft p-6;
+  }
+  
+  .input-base {
+    @apply w-full px-4 py-3 rounded-lg border border-secondary-300 
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition-all duration-200 bg-white;
+  }
+  
+  /* Estilo para select com cantos arredondados */
+  select.input-base {
+    @apply appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+  
+  select.input-base:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230284c7' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  }
+  
+  select.input-base:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  /* Input date - calendário no padrão visual da aplicação */
+  input[type="date"].input-base {
+    @apply cursor-pointer;
+  }
+
+  input[type="date"].input-base::-webkit-calendar-picker-indicator {
+    @apply cursor-pointer opacity-70 hover:opacity-100;
+    filter: none;
+  }
+
+  input[type="date"].input-base::-webkit-datetime-edit {
+    @apply text-secondary-900;
+  }
+
+  input[type="date"].input-base::-webkit-datetime-edit-fields-wrapper {
+    @apply text-secondary-900;
+  }
+
+  input[type="date"].input-base::-webkit-datetime-edit-text {
+    @apply text-secondary-500 px-0.5;
+  }
+
+  input[type="date"].input-base::-webkit-datetime-edit-month-field,
+  input[type="date"].input-base::-webkit-datetime-edit-day-field,
+  input[type="date"].input-base::-webkit-datetime-edit-year-field {
+    @apply text-secondary-900;
+  }
+  
+  /* Estilização das opções do select */
+  select.input-base option {
+    @apply py-2 px-3 rounded-md;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .btn-base {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn-base bg-primary-600 text-white hover:bg-primary-700 
+           focus:ring-primary-500 active:bg-primary-800;
+  }
+  
+  .btn-secondary {
+    @apply btn-base bg-secondary-200 text-secondary-800 
+           hover:bg-secondary-300 focus:ring-secondary-500;
+  }
+  
+  .btn-danger {
+    @apply btn-base bg-danger-500 text-white hover:bg-danger-600 
+           focus:ring-danger-500 active:bg-danger-700;
+  }
+  
+  .btn-success {
+    @apply btn-base bg-success-500 text-white hover:bg-success-600 
+           focus:ring-success-500 active:bg-success-700;
+  }
+  
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-800;
+  }
+  
+  .badge-success {
+    @apply badge bg-success-100 text-success-800;
+  }
+  
+  .badge-warning {
+    @apply badge bg-warning-100 text-warning-800;
+  }
+  
+  .badge-danger {
+    @apply badge bg-danger-100 text-danger-800;
+  }
+  
+  .badge-secondary {
+    @apply badge bg-secondary-100 text-secondary-800;
+  }
+}
+
