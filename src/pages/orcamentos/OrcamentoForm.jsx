@@ -8,15 +8,14 @@ import Select from '../../components/ui/Select'
 import Loading from '../../components/ui/Loading'
 import Badge from '../../components/ui/Badge'
 import { orcamentoService } from '../../services/orcamentoService'
-import { clienteService } from '../../services/clienteService'
 import { formatCurrency } from '../../utils/formatters'
+import ClienteSelect from '../../components/common/ClienteSelect'
 import { Link } from 'react-router-dom'
 
 const OrcamentoForm = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [clientes, setClientes] = useState([])
   const [formData, setFormData] = useState({
     cliente: '',
     descricao: '',
@@ -30,19 +29,6 @@ const OrcamentoForm = () => {
   })
   const [itens, setItens] = useState([])
   const [errors, setErrors] = useState({})
-
-  useEffect(() => {
-    loadClientes()
-  }, [])
-
-  const loadClientes = async () => {
-    try {
-      const data = await clienteService.list({ page_size: 1000 })
-      setClientes(data.results || [])
-    } catch (error) {
-      console.error('Erro ao carregar clientes:', error)
-    }
-  }
 
   const handleAddItem = () => {
     setItens([
@@ -197,22 +183,15 @@ const OrcamentoForm = () => {
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Select
+          <ClienteSelect
             label="Cliente"
             value={formData.cliente}
             onChange={(e) =>
               setFormData({ ...formData, cliente: e.target.value })
             }
-            options={[
-              { value: '', label: 'Selecione um cliente' },
-              ...clientes.map((cliente) => ({
-                value: cliente.id.toString(),
-                label: cliente.razao_social,
-              })),
-            ]}
             required
             error={errors.cliente}
-            placeholder="Selecione um cliente"
+            placeholder="Digite para buscar cliente..."
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -17,10 +17,12 @@ export const API_ENDPOINTS = {
     login: '/auth/login/',
     logout: '/auth/logout/',
     user: '/auth/user/',
+    setEmpresaAtual: '/auth/user/', // PATCH com { empresa_atual: id }
   },
-  // Configurações
+  // Configurações (multi-empresa)
   configuracoes: {
     list: '/configuracoes-empresa/',
+    atual: '/configuracoes-empresa/atual/',
     detail: (id) => `/configuracoes-empresa/${id}/`,
   },
   // Clientes

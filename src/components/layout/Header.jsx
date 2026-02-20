@@ -1,15 +1,26 @@
-import { Menu, X, LogOut, User } from 'lucide-react'
+import { Menu, X, LogOut, User, Building2 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import Button from '../ui/Button'
+import Select from '../ui/Select'
 
 const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }) => {
-  const { user, logout } = useAuth()
+  const { user, logout, empresaAtual, empresas, setEmpresaAtual } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     await logout()
     navigate('/login')
+  }
+
+  const handleEmpresaChange = async (e) => {
+    const id = e.target.value ? Number(e.target.value) : null
+    if (id == null) return
+    try {
+      await setEmpresaAtual(id)
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -18,12 +29,10 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
         <div className="flex items-center justify-between h-16">
           {/* Sistema OS fixo à esquerda + botão hambúrguer */}
           <div className="flex items-center gap-2">
-            {/* Logo - sempre fixo à esquerda */}
             <h1 className="text-xl font-bold text-primary-600 shrink-0">
               Sistema OS
             </h1>
 
-            {/* Menu Mobile - hambúrguer / X */}
             <button
               onClick={onMenuClick}
               className="lg:hidden p-2 rounded-lg hover:bg-secondary-100 transition-colors"
@@ -36,7 +45,6 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
               )}
             </button>
 
-            {/* Toggle Sidebar Desktop - ícone hambúrguer */}
             {onSidebarToggle && (
               <button
                 onClick={onSidebarToggle}
@@ -48,8 +56,32 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
             )}
           </div>
 
-          {/* User Info */}
-          <div className="flex items-center gap-4">
+          {/* Empresa atual + seletor para trocar (sempre visível quando houver empresa) */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {(empresas?.length > 0 || empresaAtual) && (
+              <div className="flex items-center gap-2 min-w-0">
+                <Building2 className="w-4 h-4 text-secondary-500 flex-shrink-0" />
+                {empresas?.length > 1 ? (
+                  <div className="w-full min-w-[140px] max-w-[220px]">
+                    <Select
+                      value={empresaAtual?.id ?? ''}
+                      onChange={handleEmpresaChange}
+                      options={empresas.map((emp) => ({
+                        value: emp.id,
+                        label: emp.nome_fantasia || emp.razao_social,
+                      }))}
+                      placeholder="Empresa"
+                      className="py-2 text-sm"
+                      title="Trocar empresa"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-sm text-secondary-700 font-medium truncate max-w-[160px] sm:max-w-[220px]" title={empresaAtual?.razao_social}>
+                    {empresaAtual ? (empresaAtual.nome_fantasia || empresaAtual.razao_social) : 'Sem empresa'}
+                  </span>
+                )}
+              </div>
+            )}
             <div className="hidden sm:flex items-center gap-2 text-sm text-secondary-600">
               <User className="w-4 h-4" />
               <span>{user?.username || 'Usuário'}</span>
