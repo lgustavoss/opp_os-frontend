@@ -4,10 +4,12 @@ import { FileText, Users, TrendingUp, Clock } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Loading from '../components/ui/Loading'
 import { dashboardService } from '../services/dashboardService'
+import { useAuth } from '../contexts/AuthContext'
 import Badge from '../components/ui/Badge'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
 const Dashboard = () => {
+  const { empresaAtual } = useAuth()
   const [stats, setStats] = useState({
     totalOrcamentos: 0,
     orcamentosRascunho: 0,
@@ -19,7 +21,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [empresaAtual?.id])
 
   const loadData = async () => {
     try {

@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Verificar autenticação ao carregar
   useEffect(() => {
     checkAuth()
   }, [])
@@ -37,13 +36,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await api.post(API_ENDPOINTS.auth.login, {
+      await api.post(API_ENDPOINTS.auth.login, {
         username,
         password,
       })
-      setUser(response.data.usuario)
-      setIsAuthenticated(true)
-      return { success: true, data: response.data }
+      // Recarrega dados do usuário (inclui empresa_atual e empresas) via GET /auth/user/
+      await checkAuth()
+      return { success: true }
     } catch (error) {
       return {
         success: false,
@@ -63,6 +62,17 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  /** Altera a empresa atual do usuário (multi-empresa). Recarrega os dados do usuário. */
+  const setEmpresaAtual = async (empresaId) => {
+    try {
+      await api.patch(API_ENDPOINTS.auth.setEmpresaAtual, { empresa_atual: empresaId })
+      await checkAuth()
+    } catch (error) {
+      console.error('Erro ao trocar empresa:', error)
+      throw error
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -70,6 +80,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     checkAuth,
+    setEmpresaAtual,
+    empresaAtual: user?.empresa_atual ?? null,
+    empresas: user?.empresas ?? [],
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

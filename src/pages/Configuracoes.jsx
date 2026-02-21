@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
+import { Building2, Plus } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Loading from '../components/ui/Loading'
 import ImageCropModal from '../components/common/ImageCropModal'
 import { configuracaoService } from '../services/configuracaoService'
+import { useAuth } from '../contexts/AuthContext'
 import { applyTelefoneMask } from '../utils/formatters'
 
 const Configuracoes = () => {
+  const { empresaAtual, setEmpresaAtual } = useAuth()
   const fileInputRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -40,6 +43,7 @@ const Configuracoes = () => {
   const [cropModalOpen, setCropModalOpen] = useState(false)
   const [cropModalImageSrc, setCropModalImageSrc] = useState(null)
   const [cropModalFileName, setCropModalFileName] = useState('logo.png')
+  const [criandoEmpresa, setCriandoEmpresa] = useState(false)
 
   const getLogomarcaSrc = (url) => {
     if (!url) return null
@@ -50,9 +54,13 @@ const Configuracoes = () => {
 
   useEffect(() => {
     loadConfiguracoes()
-  }, [])
+  }, [empresaAtual?.id])
 
   const loadConfiguracoes = async () => {
+    if (!empresaAtual?.id) {
+      setLoading(false)
+      return
+    }
     try {
       setLoading(true)
       setLogomarcaLoadError(false)
@@ -60,14 +68,50 @@ const Configuracoes = () => {
       if (data) {
         setFormData({
           ...data,
+          _semEmpresa: false,
           telefone: data.telefone ? applyTelefoneMask(data.telefone) : '',
           celular: data.celular ? applyTelefoneMask(data.celular) : '',
         })
       }
     } catch (error) {
+      if (error.response?.status === 404) {
+        setFormData((prev) => ({ ...prev, _semEmpresa: true }))
+      }
       console.error('Erro ao carregar configurações:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleNovaEmpresa = async () => {
+    setCriandoEmpresa(true)
+    try {
+      const nova = await configuracaoService.create({ razao_social: 'Nova Empresa' })
+      if (!nova?.id) {
+        throw new Error('Resposta da API sem ID da empresa.')
+      }
+      await setEmpresaAtual(nova.id)
+      const data = await configuracaoService.getById(nova.id)
+      setFormData({
+        ...data,
+        _semEmpresa: false,
+        telefone: data.telefone ? applyTelefoneMask(data.telefone) : '',
+        celular: data.celular ? applyTelefoneMask(data.celular) : '',
+      })
+    } catch (err) {
+      console.error('Erro ao criar empresa:', err)
+      const msg =
+        (err.response?.data && typeof err.response.data === 'object'
+          ? Object.entries(err.response.data)
+              .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+              .join('\n')
+          : null) ||
+        err.response?.data?.detail ||
+        err.message ||
+        'Erro ao criar empresa.'
+      alert(typeof msg === 'string' ? msg : JSON.stringify(msg))
+    } finally {
+      setCriandoEmpresa(false)
     }
   }
 
@@ -160,6 +204,19 @@ const Configuracoes = () => {
     return <Loading fullScreen />
   }
 
+  if (formData._semEmpresa) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-secondary-900">Configurações da Empresa</h1>
+        <Card>
+          <p className="text-secondary-600">
+            Nenhuma empresa selecionada. Use o seletor de empresa no canto superior direito para escolher uma empresa ou crie uma nova nas configurações.
+          </p>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -167,9 +224,37 @@ const Configuracoes = () => {
           Configurações da Empresa
         </h1>
         <p className="text-secondary-600 mt-1">
-          Configure as informações da sua empresa
+          Configure as informações da empresa selecionada
         </p>
       </div>
+
+      {/* Indica qual empresa está sendo editada (troca de empresa é feita pela navbar) */}
+      <Card className="bg-secondary-50 border-secondary-200">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-primary-600" />
+            <span className="text-sm text-secondary-600">Configurações de:</span>
+            <span className="text-sm font-semibold text-secondary-800">
+              {empresaAtual ? (empresaAtual.nome_fantasia || empresaAtual.razao_social) : '—'}
+            </span>
+          </div>
+          <p className="text-xs text-secondary-500">
+            Para editar outra empresa, troque a empresa no menu acima e acesse Configurações.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={handleNovaEmpresa}
+            disabled={criandoEmpresa}
+            isLoading={criandoEmpresa}
+            className="flex items-center gap-2 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            {criandoEmpresa ? 'Criando...' : 'Nova empresa'}
+          </Button>
+        </div>
+      </Card>
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">

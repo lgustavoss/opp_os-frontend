@@ -9,6 +9,7 @@ import Loading from '../../components/ui/Loading'
 import Modal from '../../components/ui/Modal'
 import Badge from '../../components/ui/Badge'
 import { orcamentoService } from '../../services/orcamentoService'
+import { useAuth } from '../../contexts/AuthContext'
 import { formatCurrency, formatDate, sanitizeFilename } from '../../utils/formatters'
 
 const statusOptions = [
@@ -22,6 +23,7 @@ const statusOptions = [
 ]
 
 const OrcamentosList = () => {
+  const { empresaAtual } = useAuth()
   const [orcamentos, setOrcamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -35,8 +37,12 @@ const OrcamentosList = () => {
   const [downloadingId, setDownloadingId] = useState(null)
 
   useEffect(() => {
+    setPage(1)
+  }, [empresaAtual?.id])
+
+  useEffect(() => {
     loadOrcamentos()
-  }, [page, statusFilter, viewExcluidos])
+  }, [empresaAtual?.id, page, statusFilter, viewExcluidos])
 
   const loadOrcamentos = async () => {
     try {
