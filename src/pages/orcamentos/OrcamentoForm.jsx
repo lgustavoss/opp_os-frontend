@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -14,10 +14,12 @@ import { Link } from 'react-router-dom'
 
 const OrcamentoForm = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const clienteFromUrl = searchParams.get('cliente') || ''
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    cliente: '',
+    cliente: clienteFromUrl,
     descricao: '',
     status: 'rascunho',
     data_validade: '',
@@ -29,6 +31,12 @@ const OrcamentoForm = () => {
   })
   const [itens, setItens] = useState([])
   const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    if (clienteFromUrl) {
+      setFormData((prev) => ({ ...prev, cliente: clienteFromUrl }))
+    }
+  }, [clienteFromUrl])
 
   const handleAddItem = () => {
     setItens([

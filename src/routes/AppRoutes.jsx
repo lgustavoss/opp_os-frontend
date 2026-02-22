@@ -14,6 +14,7 @@ import OrcamentosList from '../pages/orcamentos/OrcamentosList'
 import OrcamentoForm from '../pages/orcamentos/OrcamentoForm'
 import OrcamentoDetail from '../pages/orcamentos/OrcamentoDetail'
 import Configuracoes from '../pages/Configuracoes'
+import Perfil from '../pages/Perfil'
 
 const AppRoutes = () => {
   const { loading } = useAuth()
@@ -121,6 +122,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <Configuracoes />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/perfil"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Perfil />
             </Layout>
           </ProtectedRoute>
         }

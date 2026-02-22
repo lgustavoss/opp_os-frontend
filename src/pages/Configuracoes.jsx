@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { applyTelefoneMask } from '../utils/formatters'
 
 const Configuracoes = () => {
-  const { empresaAtual, setEmpresaAtual } = useAuth()
+  const { empresaAtual, setEmpresaAtual, checkAuth } = useAuth()
   const fileInputRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -175,6 +175,7 @@ const Configuracoes = () => {
       setLogomarcaPreview(null)
       setLogomarcaLoadError(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+      await checkAuth()
       await loadConfiguracoes()
     } catch (error) {
       console.error('Erro ao salvar configurações:', error)

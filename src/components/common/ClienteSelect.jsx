@@ -34,7 +34,7 @@ export default function ClienteSelect({
     setLoading(true)
     try {
       const data = await clienteService.list({
-        razao_social: term.trim(),
+        search: term.trim(),
         page_size: PAGE_SIZE,
       })
       setOptions(data.results || [])
@@ -171,7 +171,7 @@ export default function ClienteSelect({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por razão social..."
+                placeholder="Buscar por razão social, CNPJ ou CPF..."
                 className="input-base py-2 text-sm w-full"
                 onClick={(e) => e.stopPropagation()}
               />
@@ -202,10 +202,10 @@ export default function ClienteSelect({
                         : 'text-secondary-700 hover:bg-secondary-50'}
                     `}
                   >
-                    {cliente.razao_social}
-                    {cliente.nome_fantasia && (
+                    <span className="font-medium text-secondary-900">{cliente.razao_social}</span>
+                    {(cliente.nome_fantasia || cliente.cnpj_cpf) && (
                       <span className="text-secondary-500 block text-xs mt-0.5 truncate">
-                        {cliente.nome_fantasia}
+                        {[cliente.nome_fantasia, cliente.cnpj_cpf].filter(Boolean).join(' · ')}
                       </span>
                     )}
                   </button>
