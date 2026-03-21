@@ -13,7 +13,8 @@ import ClienteDetail from '../pages/clientes/ClienteDetail'
 import OrcamentosList from '../pages/orcamentos/OrcamentosList'
 import OrcamentoForm from '../pages/orcamentos/OrcamentoForm'
 import OrcamentoDetail from '../pages/orcamentos/OrcamentoDetail'
-import Configuracoes from '../pages/Configuracoes'
+import EmpresasList from '../pages/empresas/EmpresasList'
+import EmpresaForm from '../pages/empresas/EmpresaForm'
 import Perfil from '../pages/Perfil'
 
 const AppRoutes = () => {
@@ -107,6 +108,16 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/orcamentos/:id/editar"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <OrcamentoForm />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/orcamentos/:id"
         element={
           <ProtectedRoute>
@@ -117,15 +128,37 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/configuracoes"
+        path="/empresas/nova"
         element={
           <ProtectedRoute>
             <Layout>
-              <Configuracoes />
+              <EmpresaForm />
             </Layout>
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/empresas/:id/editar"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <EmpresaForm />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/empresas"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <EmpresasList />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/configuracoes/nova" element={<Navigate to="/empresas/nova" replace />} />
+      <Route path="/configuracoes" element={<Navigate to="/empresas" replace />} />
       <Route
         path="/perfil"
         element={

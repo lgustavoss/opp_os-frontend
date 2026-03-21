@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import Button from '../components/ui/Button'
-import Input from '../components/ui/Input'
-import Card from '../components/ui/Card'
-import Loading from '../components/ui/Loading'
+import './Login.css'
 
 const Login = () => {
   const [username, setUsername] = useState('')
@@ -38,54 +35,58 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 p-4">
-      <Card className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-secondary-900 mb-2">
-            Sistema OS
-          </h1>
-          <p className="text-secondary-600">Faça login para continuar</p>
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-card-header">
+          <h1 className="login-title">Sistema OS</h1>
+          <p className="login-subtitle">Faça login para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="login-form">
           {error && (
-            <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg">
-              <p className="text-sm text-danger-700">{error}</p>
+            <div className="login-alert">
+              <p>{error}</p>
             </div>
           )}
 
-          <Input
-            label="Usuário"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            autoFocus
-            disabled={isLoading}
-          />
+          <div className="login-field">
+            <label htmlFor="login-username">Usuário *</label>
+            <input
+              id="login-username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              autoFocus
+              disabled={isLoading}
+              autoComplete="username"
+            />
+          </div>
 
-          <Input
-            label="Senha"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-          />
+          <div className="login-field">
+            <label htmlFor="login-password">Senha *</label>
+            <input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              autoComplete="current-password"
+            />
+          </div>
 
-          <Button
-            type="submit"
-            variant="primary"
-            fullWidth
-            isLoading={isLoading}
-          >
-            Entrar
-          </Button>
+          <button type="submit" className="login-submit" disabled={isLoading}>
+            {isLoading ? (
+              <span className="login-submit-loading">Entrando…</span>
+            ) : (
+              'Entrar'
+            )}
+          </button>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }
 
 export default Login
-

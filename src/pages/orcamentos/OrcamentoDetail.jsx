@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Download, Edit } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -13,11 +13,13 @@ import { formatCurrency, formatDate, sanitizeFilename } from '../../utils/format
 
 const OrcamentoDetail = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [orcamento, setOrcamento] = useState(null)
   const [loading, setLoading] = useState(true)
   const [itemModal, setItemModal] = useState(false)
   const [statusModal, setStatusModal] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
   const [itemForm, setItemForm] = useState({
     tipo: 'servico',
     descricao: '',
@@ -77,6 +79,7 @@ const OrcamentoDetail = () => {
 
   const handleGerarOrcamento = async () => {
     try {
+      setDownloadingPdf(true)
       const blob = await orcamentoService.gerarOrcamento(id)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -88,7 +91,9 @@ const OrcamentoDetail = () => {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (error) {
-      alert('Erro ao gerar orçamento.')
+      alert('Erro ao gerar PDF. Tente novamente.')
+    } finally {
+      setDownloadingPdf(false)
     }
   }
 
@@ -134,14 +139,26 @@ const OrcamentoDetail = () => {
             <p className="text-secondary-600 mt-1">Detalhes do orçamento</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {orcamento.ativo !== false && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex items-center gap-2"
+              onClick={() => navigate(`/orcamentos/${id}/editar`)}
+            >
+              <Edit className="w-4 h-4" />
+              Editar
+            </Button>
+          )}
           <Button
             variant="secondary"
             onClick={handleGerarOrcamento}
+            disabled={downloadingPdf}
             className="flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
-            Gerar PDF
+            {downloadingPdf ? 'Gerando…' : 'Gerar PDF'}
           </Button>
           <Button
             variant="primary"

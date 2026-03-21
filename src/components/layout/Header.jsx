@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Menu, X, LogOut, User, Building2, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { getEmpresaMenuLabel } from '../../utils/empresaDisplay'
 import { useNavigate } from 'react-router-dom'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
@@ -89,7 +90,7 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
                       onChange={handleEmpresaChange}
                       options={empresas.map((emp) => ({
                         value: emp.id,
-                        label: emp.nome_fantasia || emp.razao_social,
+                        label: getEmpresaMenuLabel(emp),
                       }))}
                       placeholder="Empresa"
                       className="py-2 text-sm"
@@ -98,7 +99,7 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
                   </div>
                 ) : (
                   <span className="text-sm text-secondary-700 font-medium truncate max-w-[160px] sm:max-w-[220px]" title={empresaAtual?.razao_social}>
-                    {empresaAtual ? (empresaAtual.nome_fantasia || empresaAtual.razao_social) : 'Sem empresa'}
+                    {empresaAtual ? getEmpresaMenuLabel(empresaAtual) : 'Sem empresa'}
                   </span>
                 )}
               </div>

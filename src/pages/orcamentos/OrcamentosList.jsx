@@ -321,6 +321,17 @@ const OrcamentosList = () => {
                             </button>
                           </Link>
                           {!viewExcluidos && (
+                            <Link to={`/orcamentos/${orcamento.id}/editar`}>
+                              <button
+                                type="button"
+                                className="p-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors"
+                                title="Editar orçamento"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            </Link>
+                          )}
+                          {!viewExcluidos && (
                             <button
                               onClick={() =>
                                 setDeleteModal({ isOpen: true, orcamento })
@@ -380,6 +391,17 @@ const OrcamentosList = () => {
                           <Eye className="w-5 h-5" />
                         </button>
                       </Link>
+                      {!viewExcluidos && (
+                        <Link to={`/orcamentos/${orcamento.id}/editar`}>
+                          <button
+                            type="button"
+                            className="p-2 rounded-lg hover:bg-secondary-100 text-secondary-700 transition-colors"
+                            title="Editar orçamento"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        </Link>
+                      )}
                       {!viewExcluidos && (
                         <button
                           onClick={() =>

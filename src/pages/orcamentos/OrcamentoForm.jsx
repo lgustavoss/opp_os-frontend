@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -14,8 +14,16 @@ import { Link } from 'react-router-dom'
 
 const OrcamentoForm = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id: paramId } = useParams()
   const [searchParams] = useSearchParams()
   const clienteFromUrl = searchParams.get('cliente') || ''
+  const isEditMode = Boolean(paramId && /\/editar$/.test(location.pathname))
+  const editId = isEditMode ? paramId : null
+
+  const serverItemIdsRef = useRef(new Set())
+  const [pageLoading, setPageLoading] = useState(() => Boolean(isEditMode))
+  const [numeroOrcamento, setNumeroOrcamento] = useState('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
@@ -33,15 +41,77 @@ const OrcamentoForm = () => {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (clienteFromUrl) {
+    if (!isEditMode && clienteFromUrl) {
       setFormData((prev) => ({ ...prev, cliente: clienteFromUrl }))
     }
-  }, [clienteFromUrl])
+  }, [clienteFromUrl, isEditMode])
+
+  useEffect(() => {
+    if (!editId) {
+      setPageLoading(false)
+      return
+    }
+    let cancelled = false
+    const load = async () => {
+      try {
+        setPageLoading(true)
+        const data = await orcamentoService.get(editId)
+        if (cancelled) return
+        setNumeroOrcamento(data.numero || '')
+        const dv = data.data_validade
+          ? String(data.data_validade).slice(0, 10)
+          : ''
+        const d = parseFloat(data.desconto) || 0
+        const a = parseFloat(data.acrescimo) || 0
+        let ajuste_valor = '0'
+        let ajuste_tipo = data.desconto_tipo || 'valor'
+        if (d > 0) {
+          ajuste_valor = String(-d)
+          ajuste_tipo = data.desconto_tipo || 'valor'
+        } else if (a > 0) {
+          ajuste_valor = String(a)
+          ajuste_tipo = data.acrescimo_tipo || 'valor'
+        }
+        setFormData({
+          cliente: data.cliente != null ? String(data.cliente) : '',
+          descricao: data.descricao || '',
+          status: data.status || 'rascunho',
+          data_validade: dv,
+          ajuste_valor,
+          ajuste_tipo,
+          condicoes_pagamento: data.condicoes_pagamento || '',
+          prazo_entrega: data.prazo_entrega || '',
+          observacoes: data.observacoes || '',
+        })
+        const mapped = (data.itens || []).map((it) => ({
+          id: it.id,
+          tipo: it.tipo || 'servico',
+          descricao: it.descricao || '',
+          quantidade: it.quantidade != null ? String(it.quantidade) : '',
+          valor_unitario:
+            it.valor_unitario != null ? String(it.valor_unitario) : '',
+        }))
+        setItens(mapped)
+        serverItemIdsRef.current = new Set(mapped.map((i) => i.id).filter(Boolean))
+      } catch (e) {
+        console.error(e)
+        alert('Não foi possível carregar o orçamento.')
+        navigate('/orcamentos')
+      } finally {
+        if (!cancelled) setPageLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [editId, navigate])
 
   const handleAddItem = () => {
     setItens([
       ...itens,
       {
+        id: undefined,
         tipo: 'servico',
         descricao: '',
         quantidade: '',
@@ -129,9 +199,22 @@ const OrcamentoForm = () => {
       const acrescimo = valorAjuste > 0 ? valorAjuste : 0
       const tipo = formData.ajuste_tipo
 
-      // Criar o orçamento conforme API
-      const data = {
-        cliente: parseInt(formData.cliente),
+      const updatePayload = {
+        cliente: parseInt(formData.cliente, 10),
+        descricao: formData.descricao?.trim() || null,
+        status: formData.status,
+        desconto,
+        desconto_tipo: tipo,
+        acrescimo,
+        acrescimo_tipo: tipo,
+        data_validade: formData.data_validade || null,
+        condicoes_pagamento: formData.condicoes_pagamento?.trim() || null,
+        prazo_entrega: formData.prazo_entrega?.trim() || null,
+        observacoes: formData.observacoes?.trim() || null,
+      }
+
+      const createPayload = {
+        cliente: parseInt(formData.cliente, 10),
         ...(formData.descricao?.trim() && { descricao: formData.descricao.trim() }),
         status: formData.status,
         desconto,
@@ -139,16 +222,56 @@ const OrcamentoForm = () => {
         acrescimo,
         acrescimo_tipo: tipo,
         ...(formData.data_validade && { data_validade: formData.data_validade }),
-        ...(formData.condicoes_pagamento?.trim() && { condicoes_pagamento: formData.condicoes_pagamento.trim() }),
+        ...(formData.condicoes_pagamento?.trim() && {
+          condicoes_pagamento: formData.condicoes_pagamento.trim(),
+        }),
         ...(formData.prazo_entrega?.trim() && { prazo_entrega: formData.prazo_entrega.trim() }),
         ...(formData.observacoes?.trim() && { observacoes: formData.observacoes.trim() }),
         ...(itensValidados.length > 0 && { itens: itensValidados }),
       }
 
-      const result = await orcamentoService.create(data)
+      if (isEditMode && editId) {
+        await orcamentoService.update(editId, updatePayload)
+
+        const idsInForm = new Set(itens.filter((i) => i.id).map((i) => i.id))
+        for (const sid of serverItemIdsRef.current) {
+          if (!idsInForm.has(sid)) {
+            await orcamentoService.deleteItem(sid)
+          }
+        }
+        for (const item of itens) {
+          if (item.id) {
+            await orcamentoService.updateItem(item.id, {
+              tipo: item.tipo,
+              descricao: item.descricao,
+              quantidade: parseInt(item.quantidade, 10),
+              valor_unitario: parseFloat(item.valor_unitario),
+            })
+          }
+        }
+        for (const item of itens) {
+          if (!item.id) {
+            await orcamentoService.adicionarItem(editId, {
+              tipo: item.tipo,
+              descricao: item.descricao,
+              quantidade: parseInt(item.quantidade, 10),
+              valor_unitario: parseFloat(item.valor_unitario),
+            })
+          }
+        }
+
+        const fresh = await orcamentoService.get(editId)
+        serverItemIdsRef.current = new Set(
+          (fresh.itens || []).map((i) => i.id).filter(Boolean)
+        )
+        navigate(`/orcamentos/${editId}`)
+        return
+      }
+
+      const result = await orcamentoService.create(createPayload)
       navigate(`/orcamentos/${result.id}`)
     } catch (error) {
-      console.error('Erro ao criar orçamento:', error)
+      console.error('Erro ao salvar orçamento:', error)
       if (error.response?.data) {
         setErrors(error.response.data)
         // Mostrar erros específicos
@@ -164,27 +287,33 @@ const OrcamentoForm = () => {
       } else if (error.message) {
         alert(error.message)
       } else {
-        alert('Erro ao criar orçamento. Tente novamente.')
+        alert(isEditMode ? 'Erro ao salvar orçamento. Tente novamente.' : 'Erro ao criar orçamento. Tente novamente.')
       }
     } finally {
       setSaving(false)
     }
   }
 
+  if (pageLoading) {
+    return <Loading fullScreen />
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/orcamentos">
-          <button className="p-2 rounded-lg hover:bg-secondary-100 transition-colors">
+        <Link to={isEditMode && editId ? `/orcamentos/${editId}` : '/orcamentos'}>
+          <button type="button" className="p-2 rounded-lg hover:bg-secondary-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-secondary-600" />
           </button>
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-secondary-900">
-            Novo Orçamento
+            {isEditMode ? `Editar orçamento${numeroOrcamento ? ` ${numeroOrcamento}` : ''}` : 'Novo Orçamento'}
           </h1>
           <p className="text-secondary-600 mt-1">
-            Preencha os dados do novo orçamento
+            {isEditMode
+              ? 'Altere os dados e salve. Depois, na tela do orçamento, gere o PDF para conferir.'
+              : 'Preencha os dados do novo orçamento'}
           </p>
         </div>
       </div>
@@ -312,7 +441,7 @@ const OrcamentoForm = () => {
             ) : (
               <div className="space-y-4">
                 {itens.map((item, index) => (
-                  <Card key={index} className="p-4">
+                  <Card key={item.id ?? `novo-${index}`} className="p-4">
                     <div className="flex items-start justify-between mb-4">
                       <h4 className="font-medium text-secondary-900">
                         Item #{index + 1}
@@ -481,13 +610,13 @@ const OrcamentoForm = () => {
           </div>
 
           <div className="flex items-center justify-end gap-4 pt-4 border-t border-secondary-200">
-            <Link to="/orcamentos">
+            <Link to={isEditMode && editId ? `/orcamentos/${editId}` : '/orcamentos'}>
               <Button type="button" variant="secondary">
                 Cancelar
               </Button>
             </Link>
             <Button type="submit" variant="primary" isLoading={saving}>
-              Criar Orçamento
+              {isEditMode ? 'Salvar alterações' : 'Criar Orçamento'}
             </Button>
           </div>
         </form>

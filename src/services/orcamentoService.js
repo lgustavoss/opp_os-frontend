@@ -55,5 +55,19 @@ export const orcamentoService = {
     )
     return response.data
   },
+
+  /** Atualiza um item de orçamento (linha da tabela de itens) */
+  updateItem: async (itemId, data) => {
+    const response = await api.patch(
+      API_ENDPOINTS.itensOrcamento.update(itemId),
+      data
+    )
+    return response.data
+  },
+
+  /** Remove um item do orçamento */
+  deleteItem: async (itemId) => {
+    await api.delete(API_ENDPOINTS.itensOrcamento.delete(itemId))
+  },
 }
 

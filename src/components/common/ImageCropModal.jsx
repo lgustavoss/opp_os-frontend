@@ -72,15 +72,22 @@ const ImageCropModal = ({
   imageSrc,
   onConfirm,
   fileName = 'logo.png',
+  /** Compatível com telas antigas; usado se `dimensoesMaxCm` não for passado */
   logoDimensoesMaximas = { largura_cm: 2.5, altura_cm: 2.5 },
+  /** Dimensões máx. no PDF (cm) — recorte com essa proporção e exporta limitado a isso */
+  dimensoesMaxCm,
+  modalTitle,
+  /** Substitui o texto de ajuda padrão (ex.: selo em quadrado) */
+  description,
 }) => {
   const imgRef = useRef(null)
   const [crop, setCrop] = useState()
   const [completedCrop, setCompletedCrop] = useState()
   const [processing, setProcessing] = useState(false)
 
-  const larguraCm = logoDimensoesMaximas.largura_cm ?? 2.5
-  const alturaCm = logoDimensoesMaximas.altura_cm ?? 2.5
+  const dims = dimensoesMaxCm || logoDimensoesMaximas
+  const larguraCm = dims.largura_cm ?? 2.5
+  const alturaCm = dims.altura_cm ?? 2.5
   const aspect = larguraCm / alturaCm
   const maxWidthPx = Math.round(larguraCm * CM_TO_PX_300DPI)
   const maxHeightPx = Math.round(alturaCm * CM_TO_PX_300DPI)
@@ -141,7 +148,7 @@ const ImageCropModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Selecionar área da imagem"
+      title={modalTitle || 'Selecionar área da imagem'}
       size="xl"
       closeOnOverlayClick={false}
       footer={
@@ -160,11 +167,15 @@ const ImageCropModal = ({
         </>
       }
     >
-      <p className="text-sm text-secondary-600 mb-4">
-        Selecione a área da imagem para a logomarca. No PDF, ela será exibida em até{' '}
-        <strong>{larguraCm} cm × {alturaCm} cm</strong> no canto superior esquerdo. Ajuste o
-        recorte para que o nome da empresa fique legível.
-      </p>
+      {description ?? (
+        <p className="text-sm text-secondary-600 mb-4">
+          Selecione a área da imagem para a logomarca. No PDF, ela será exibida em até{' '}
+          <strong>
+            {larguraCm} cm × {alturaCm} cm
+          </strong>{' '}
+          no canto superior esquerdo. Ajuste o recorte para que o nome da empresa fique legível.
+        </p>
+      )}
       <div className="max-h-[60vh] overflow-auto flex justify-center bg-secondary-50 rounded-lg p-4">
         <ReactCrop
           crop={crop}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft, Search, Loader2 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -205,46 +205,80 @@ const ClienteForm = () => {
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* CNPJ/CPF */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <Input
-                label="CNPJ/CPF"
-                type="text"
-                value={formData.cnpj_cpf}
-                onChange={(e) => {
-                  const masked = applyCNPJCPFMask(
-                    e.target.value,
-                    formData.tipo_documento
-                  )
-                  setFormData((prev) => ({ ...prev, cnpj_cpf: masked }))
-                }}
-                maxLength={getMaxLengthCNPJCPF(formData.tipo_documento)}
-                placeholder={
-                  formData.tipo_documento === 'CPF'
-                    ? '000.000.000-00'
-                    : '00.000.000/0000-00'
-                }
-                required
-                error={errors.cnpj_cpf}
-                disabled={isEdit}
-              />
-            </div>
-            {!isEdit && formData.tipo_documento === 'CNPJ' && (
-              <div className="flex items-end">
-                <Button
+          {/* CNPJ/CPF — lupa dentro do campo quando novo cliente + CNPJ */}
+          {!isEdit && formData.tipo_documento === 'CNPJ' ? (
+            <div className="w-full">
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                CNPJ/CPF
+                <span className="text-danger-500 ml-1">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.cnpj_cpf}
+                  onChange={(e) => {
+                    const masked = applyCNPJCPFMask(
+                      e.target.value,
+                      formData.tipo_documento
+                    )
+                    setFormData((prev) => ({ ...prev, cnpj_cpf: masked }))
+                  }}
+                  maxLength={getMaxLengthCNPJCPF(formData.tipo_documento)}
+                  placeholder="00.000.000/0000-00"
+                  required
+                  disabled={isEdit}
+                  className={`
+                    input-base w-full pr-11
+                    ${errors.cnpj_cpf ? 'border-danger-500 focus:ring-danger-500' : ''}
+                  `}
+                  aria-describedby={errors.cnpj_cpf ? 'cliente-cnpj-error' : undefined}
+                />
+                <button
                   type="button"
-                  variant="secondary"
                   onClick={handleConsultarCNPJ}
-                  isLoading={consultingCNPJ}
-                  className="w-full flex items-center justify-center gap-2"
+                  disabled={consultingCNPJ}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-md text-secondary-500 hover:text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  title="Consultar CNPJ na ReceitaWS"
+                  aria-label="Consultar CNPJ na ReceitaWS"
                 >
-                  <Search className="w-4 h-4" />
-                  Consultar CNPJ
-                </Button>
+                  {consultingCNPJ ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Search className="w-5 h-5" />
+                  )}
+                </button>
               </div>
-            )}
-          </div>
+              {errors.cnpj_cpf && (
+                <p id="cliente-cnpj-error" className="mt-1 text-sm text-danger-600">
+                  {Array.isArray(errors.cnpj_cpf)
+                    ? errors.cnpj_cpf.join(', ')
+                    : errors.cnpj_cpf}
+                </p>
+              )}
+            </div>
+          ) : (
+            <Input
+              label="CNPJ/CPF"
+              type="text"
+              value={formData.cnpj_cpf}
+              onChange={(e) => {
+                const masked = applyCNPJCPFMask(
+                  e.target.value,
+                  formData.tipo_documento
+                )
+                setFormData((prev) => ({ ...prev, cnpj_cpf: masked }))
+              }}
+              maxLength={getMaxLengthCNPJCPF(formData.tipo_documento)}
+              placeholder={
+                formData.tipo_documento === 'CPF'
+                  ? '000.000.000-00'
+                  : '00.000.000/0000-00'
+              }
+              required
+              error={errors.cnpj_cpf}
+              disabled={isEdit}
+            />
+          )}
 
           <Select
             label="Tipo de Documento"
