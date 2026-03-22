@@ -18,6 +18,11 @@ export const API_ENDPOINTS = {
     logout: '/auth/logout/',
     user: '/auth/user/',
     setEmpresaAtual: '/auth/user/', // PATCH com { empresa_atual: id }
+    validarSenha: '/auth/validar-senha/',
+  },
+  usuarios: {
+    list: '/usuarios/',
+    detail: (id) => `/usuarios/${id}/`,
   },
   // Configurações (multi-empresa)
   configuracoes: {

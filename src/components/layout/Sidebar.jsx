@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -7,31 +7,56 @@ import {
   Building2,
   Settings,
   X,
+  UserCog,
 } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { permissoesDoUsuario } from '../../utils/moduloPermissoes'
 
-const menuItems = [
+const menuItemsBase = [
   {
     path: '/',
     label: 'Dashboard',
     icon: LayoutDashboard,
+    permKey: null,
   },
   {
     path: '/clientes',
     label: 'Clientes',
     icon: Users,
+    permKey: 'clientesVer',
   },
   {
     path: '/orcamentos',
     label: 'Orçamentos',
     icon: FileText,
+    permKey: 'orcamentosVer',
   },
 ]
 
 function isConfigSectionPath(pathname) {
-  return pathname === '/empresas' || pathname.startsWith('/empresas/')
+  return (
+    pathname === '/empresas' ||
+    pathname.startsWith('/empresas/') ||
+    pathname === '/usuarios' ||
+    pathname.startsWith('/usuarios/')
+  )
 }
 
 const Sidebar = ({ isOpen, onClose, isCollapsed = false }) => {
+  const { user } = useAuth()
+  const p = permissoesDoUsuario(user)
+  const navItemsPrincipal = useMemo(
+    () =>
+      menuItemsBase.filter((item) => {
+        if (!item.permKey) return true
+        if (item.permKey === 'clientesVer') return p.clientes_pode_visualizar
+        if (item.permKey === 'orcamentosVer') return p.orcamentos_pode_visualizar
+        return true
+      }),
+    [p.clientes_pode_visualizar, p.orcamentos_pode_visualizar]
+  )
+  const mostrarEmpresas = p.isStaff || p.configuracoes_pode_visualizar
+  const mostrarSecaoConfig = user?.is_staff || p.configuracoes_pode_visualizar
   const location = useLocation()
   const [configMenuOpen, setConfigMenuOpen] = useState(() =>
     isConfigSectionPath(location.pathname)
@@ -103,7 +128,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed = false }) => {
 
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
-            {menuItems.map((item) => {
+            {navItemsPrincipal.map((item) => {
               const Icon = item.icon
               return (
                 <li key={item.path}>
@@ -121,24 +146,41 @@ const Sidebar = ({ isOpen, onClose, isCollapsed = false }) => {
               )
             })}
 
-            {/* Configurações + submenu Empresas */}
-            {isCollapsed ? (
-              <li>
-                <NavLink
-                  to="/empresas"
-                  onClick={onClose}
-                  className={linkClass}
-                  title="Empresas"
-                >
-                  <Settings className="w-5 h-5 flex-shrink-0" />
-                </NavLink>
-              </li>
-            ) : (
-              <li>
-                <button
-                  type="button"
-                  onClick={() => setConfigMenuOpen((v) => !v)}
-                  className={`
+            {/* Configurações: empresas (visualizar) + usuários (staff) */}
+            {mostrarSecaoConfig &&
+              (isCollapsed ? (
+                <>
+                  {mostrarEmpresas && (
+                    <li>
+                      <NavLink
+                        to="/empresas"
+                        onClick={onClose}
+                        className={linkClass}
+                        title="Empresas"
+                      >
+                        <Settings className="w-5 h-5 flex-shrink-0" />
+                      </NavLink>
+                    </li>
+                  )}
+                  {user?.is_staff && (
+                    <li>
+                      <NavLink
+                        to="/usuarios"
+                        onClick={onClose}
+                        className={linkClass}
+                        title="Usuários"
+                      >
+                        <UserCog className="w-5 h-5 flex-shrink-0" />
+                      </NavLink>
+                    </li>
+                  )}
+                </>
+              ) : (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setConfigMenuOpen((v) => !v)}
+                    className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left
                     transition-colors duration-200
                     ${
@@ -147,32 +189,46 @@ const Sidebar = ({ isOpen, onClose, isCollapsed = false }) => {
                         : 'text-secondary-700 hover:bg-secondary-50'
                     }
                   `}
-                  aria-expanded={configMenuOpen}
-                  aria-controls="sidebar-config-submenu"
-                  title={configMenuOpen ? 'Recolher menu Empresas' : 'Expandir menu Empresas'}
-                >
-                  <Settings className="w-5 h-5 flex-shrink-0" />
-                  <span>Configurações</span>
-                </button>
-                {configMenuOpen && (
-                  <ul
-                    id="sidebar-config-submenu"
-                    className="mt-1 mb-2 ml-3 pl-4 border-l-2 border-primary-200 space-y-0.5"
+                    aria-expanded={configMenuOpen}
+                    aria-controls="sidebar-config-submenu"
+                    title={configMenuOpen ? 'Recolher menu' : 'Expandir menu'}
                   >
-                    <li>
-                      <NavLink
-                        to="/empresas"
-                        onClick={onClose}
-                        className={subLinkClass}
-                      >
-                        <Building2 className="w-4 h-4 flex-shrink-0 opacity-80" />
-                        <span>Empresas</span>
-                      </NavLink>
-                    </li>
-                  </ul>
-                )}
-              </li>
-            )}
+                    <Settings className="w-5 h-5 flex-shrink-0" />
+                    <span>Configurações</span>
+                  </button>
+                  {configMenuOpen && (
+                    <ul
+                      id="sidebar-config-submenu"
+                      className="mt-1 mb-2 ml-3 pl-4 border-l-2 border-primary-200 space-y-0.5"
+                    >
+                      {mostrarEmpresas && (
+                        <li>
+                          <NavLink
+                            to="/empresas"
+                            onClick={onClose}
+                            className={subLinkClass}
+                          >
+                            <Building2 className="w-4 h-4 flex-shrink-0 opacity-80" />
+                            <span>Empresas</span>
+                          </NavLink>
+                        </li>
+                      )}
+                      {user?.is_staff && (
+                        <li>
+                          <NavLink
+                            to="/usuarios"
+                            onClick={onClose}
+                            className={subLinkClass}
+                          >
+                            <UserCog className="w-4 h-4 flex-shrink-0 opacity-80" />
+                            <span>Usuários</span>
+                          </NavLink>
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                </li>
+              ))}
           </ul>
         </nav>
       </aside>

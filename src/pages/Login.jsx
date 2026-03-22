@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import './Login.css'
 
 const Login = () => {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -17,7 +17,7 @@ const Login = () => {
     setIsLoading(true)
 
     try {
-      const result = await login(username, password)
+      const result = await login(email, password)
       if (result.success) {
         navigate('/')
       } else {
@@ -50,16 +50,16 @@ const Login = () => {
           )}
 
           <div className="login-field">
-            <label htmlFor="login-username">Usuário *</label>
+            <label htmlFor="login-email">E-mail *</label>
             <input
-              id="login-username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
               disabled={isLoading}
-              autoComplete="username"
+              autoComplete="email"
             />
           </div>
 

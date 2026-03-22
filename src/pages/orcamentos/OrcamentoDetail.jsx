@@ -10,10 +10,12 @@ import Input from '../../components/ui/Input'
 import Select from '../../components/ui/Select'
 import { orcamentoService } from '../../services/orcamentoService'
 import { formatCurrency, formatDate, sanitizeFilename } from '../../utils/formatters'
+import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 
 const OrcamentoDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const perm = usePermissoesModulos()
   const [orcamento, setOrcamento] = useState(null)
   const [loading, setLoading] = useState(true)
   const [itemModal, setItemModal] = useState(false)
@@ -140,7 +142,7 @@ const OrcamentoDetail = () => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {orcamento.ativo !== false && (
+          {orcamento.ativo !== false && perm.orcamentos_pode_cadastrar && (
             <Button
               type="button"
               variant="secondary"
@@ -160,13 +162,15 @@ const OrcamentoDetail = () => {
             <Download className="w-4 h-4" />
             {downloadingPdf ? 'Gerando…' : 'Gerar PDF'}
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => setStatusModal(true)}
-            className="flex items-center gap-2"
-          >
-            Alterar Status
-          </Button>
+          {perm.orcamentos_pode_cadastrar && (
+            <Button
+              variant="primary"
+              onClick={() => setStatusModal(true)}
+              className="flex items-center gap-2"
+            >
+              Alterar Status
+            </Button>
+          )}
         </div>
       </div>
 
@@ -217,15 +221,17 @@ const OrcamentoDetail = () => {
               <h2 className="text-lg font-semibold text-secondary-900">
                 Itens do Orçamento
               </h2>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setItemModal(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Adicionar Item
-              </Button>
+              {perm.orcamentos_pode_cadastrar && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setItemModal(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar Item
+                </Button>
+              )}
             </div>
 
             {orcamento.itens && orcamento.itens.length > 0 ? (
@@ -308,6 +314,36 @@ const OrcamentoDetail = () => {
                   {formatDate(orcamento.data_criacao)}
                 </dd>
               </div>
+              {orcamento.usuario_criacao_nome && (
+                <div>
+                  <dt className="text-sm font-medium text-secondary-500">
+                    Criado por
+                  </dt>
+                  <dd className="mt-1 text-sm text-secondary-900">
+                    {orcamento.usuario_criacao_nome}
+                  </dd>
+                </div>
+              )}
+              {orcamento.data_ultima_alteracao && (
+                <div>
+                  <dt className="text-sm font-medium text-secondary-500">
+                    Última alteração
+                  </dt>
+                  <dd className="mt-1 text-sm text-secondary-900">
+                    {formatDate(orcamento.data_ultima_alteracao)}
+                  </dd>
+                </div>
+              )}
+              {orcamento.usuario_ultima_alteracao_nome && (
+                <div>
+                  <dt className="text-sm font-medium text-secondary-500">
+                    Alterado por
+                  </dt>
+                  <dd className="mt-1 text-sm text-secondary-900">
+                    {orcamento.usuario_ultima_alteracao_nome}
+                  </dd>
+                </div>
+              )}
               {orcamento.data_validade && (
                 <div>
                   <dt className="text-sm font-medium text-secondary-500">

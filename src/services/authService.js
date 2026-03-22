@@ -2,9 +2,9 @@ import api from '../utils/axios'
 import { API_ENDPOINTS } from '../config/api'
 
 export const authService = {
-  login: async (username, password) => {
+  login: async (email, password) => {
     const response = await api.post(API_ENDPOINTS.auth.login, {
-      username,
+      email,
       password,
     })
     return response.data

@@ -1,16 +1,10 @@
 import { useAuth } from '../contexts/AuthContext'
 import Card from '../components/ui/Card'
 import { formatDate } from '../utils/formatters'
+import { getIniciais } from '../utils/userDisplay'
 
 const Perfil = () => {
   const { user } = useAuth()
-
-  const getIniciais = (name) => {
-    if (!name || !name.trim()) return 'U'
-    const parts = name.trim().split(/\s+/)
-    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    return name.substring(0, 2).toUpperCase()
-  }
 
   return (
     <div className="space-y-6">
@@ -22,12 +16,12 @@ const Perfil = () => {
       <Card>
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-primary-600 text-white flex items-center justify-center text-2xl font-semibold shrink-0">
-            {getIniciais(user?.username || user?.first_name || 'Usuário')}
+            {getIniciais(user?.nome_exibicao || user?.email || user?.first_name || 'Usuário')}
           </div>
           <div className="space-y-2 flex-1 min-w-0">
             <div>
-              <p className="text-sm text-secondary-500">Usuário</p>
-              <p className="font-medium text-secondary-900">{user?.username || '—'}</p>
+              <p className="text-sm text-secondary-500">Login (e-mail)</p>
+              <p className="font-medium text-secondary-900">{user?.email || '—'}</p>
             </div>
             {(user?.first_name || user?.last_name) && (
               <div>

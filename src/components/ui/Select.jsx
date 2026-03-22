@@ -72,7 +72,7 @@ const Select = forwardRef(
             className={`
               input-base
               text-left
-              flex items-center justify-between
+              flex items-center justify-between gap-2 min-w-0
               ${error ? 'border-danger-500 focus:ring-danger-500' : ''}
               ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
               ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : ''}
@@ -80,11 +80,15 @@ const Select = forwardRef(
             `}
             {...props}
           >
-            <span className={selectedOption ? 'text-secondary-900' : 'text-secondary-400'}>
+            <span
+              className={`min-w-0 flex-1 truncate text-left ${
+                selectedOption ? 'text-secondary-900' : 'text-secondary-400'
+              }`}
+            >
               {selectedOption ? selectedOption.label : placeholder}
             </span>
             <ChevronDown
-              className={`w-5 h-5 text-secondary-500 transition-transform duration-200 ${
+              className={`w-5 h-5 text-secondary-500 shrink-0 transition-transform duration-200 ${
                 isOpen ? 'transform rotate-180' : ''
               }`}
             />

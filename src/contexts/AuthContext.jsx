@@ -34,10 +34,10 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
       await api.post(API_ENDPOINTS.auth.login, {
-        username,
+        email,
         password,
       })
       // Recarrega dados do usuário (inclui empresa_atual e empresas) via GET /auth/user/

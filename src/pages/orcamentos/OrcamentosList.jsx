@@ -11,6 +11,7 @@ import Badge from '../../components/ui/Badge'
 import { orcamentoService } from '../../services/orcamentoService'
 import { useAuth } from '../../contexts/AuthContext'
 import { formatCurrency, formatDate, sanitizeFilename } from '../../utils/formatters'
+import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 
 const statusOptions = [
   { value: '', label: 'Todos os Status' },
@@ -24,6 +25,7 @@ const statusOptions = [
 
 const OrcamentosList = () => {
   const { empresaAtual } = useAuth()
+  const perm = usePermissoesModulos()
   const [orcamentos, setOrcamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -140,7 +142,7 @@ const OrcamentosList = () => {
             Gerencie seus orçamentos
           </p>
         </div>
-        {!viewExcluidos && (
+        {!viewExcluidos && perm.orcamentos_pode_cadastrar && (
           <Link to="/orcamentos/novo" className="w-full sm:w-auto block sm:inline-block">
             <Button variant="primary" className="w-full sm:w-auto flex items-center justify-center gap-2">
               <Plus className="w-5 h-5 shrink-0" />
@@ -246,9 +248,11 @@ const OrcamentosList = () => {
             <p className="text-sm text-secondary-500 mt-1 mb-4">
               {viewExcluidos
                 ? 'Orçamentos que forem excluídos aparecerão aqui.'
-                : 'Clique em "Novo Orçamento" para criar o primeiro.'}
+                : perm.orcamentos_pode_cadastrar
+                  ? 'Clique em "Novo Orçamento" para criar o primeiro.'
+                  : 'Nenhum orçamento na listagem. Peça permissão de cadastro para incluir novos.'}
             </p>
-            {!viewExcluidos && (
+            {!viewExcluidos && perm.orcamentos_pode_cadastrar && (
               <Link to="/orcamentos/novo">
                 <Button variant="primary" size="sm">
                   Novo Orçamento
@@ -320,7 +324,7 @@ const OrcamentosList = () => {
                               <Eye className="w-4 h-4" />
                             </button>
                           </Link>
-                          {!viewExcluidos && (
+                          {!viewExcluidos && perm.orcamentos_pode_cadastrar && (
                             <Link to={`/orcamentos/${orcamento.id}/editar`}>
                               <button
                                 type="button"
@@ -331,8 +335,9 @@ const OrcamentosList = () => {
                               </button>
                             </Link>
                           )}
-                          {!viewExcluidos && (
+                          {!viewExcluidos && perm.orcamentos_pode_cadastrar && (
                             <button
+                              type="button"
                               onClick={() =>
                                 setDeleteModal({ isOpen: true, orcamento })
                               }
@@ -391,7 +396,7 @@ const OrcamentosList = () => {
                           <Eye className="w-5 h-5" />
                         </button>
                       </Link>
-                      {!viewExcluidos && (
+                      {!viewExcluidos && perm.orcamentos_pode_cadastrar && (
                         <Link to={`/orcamentos/${orcamento.id}/editar`}>
                           <button
                             type="button"
@@ -402,8 +407,9 @@ const OrcamentosList = () => {
                           </button>
                         </Link>
                       )}
-                      {!viewExcluidos && (
+                      {!viewExcluidos && perm.orcamentos_pode_cadastrar && (
                         <button
+                          type="button"
                           onClick={() =>
                             setDeleteModal({ isOpen: true, orcamento })
                           }

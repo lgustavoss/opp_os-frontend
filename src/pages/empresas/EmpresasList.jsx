@@ -18,10 +18,13 @@ import { configuracaoService } from '../../services/configuracaoService'
 import { useAuth } from '../../contexts/AuthContext'
 import { getEmpresaMenuLabel } from '../../utils/empresaDisplay'
 import { applyCNPJCPFMask } from '../../utils/formatters'
+import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 
 const EmpresasList = () => {
   const navigate = useNavigate()
   const { empresaAtual, setEmpresaAtual, checkAuth } = useAuth()
+  const perm = usePermissoesModulos()
+  const podeConfig = perm.configuracoes_pode_configurar
   const [empresas, setEmpresas] = useState([])
   const [loading, setLoading] = useState(true)
   const [drafts, setDrafts] = useState({})
@@ -138,21 +141,24 @@ const EmpresasList = () => {
             Empresas
           </h1>
           <p className="text-secondary-600 mt-1">
-            Defina o nome no menu do topo, use a engrenagem para dados completos (logomarca, CNPJ,
-            textos de PDF) ou remova empresas sem orçamentos.
+            {podeConfig
+              ? 'Defina o nome no menu do topo, use a engrenagem para dados completos (logomarca, CNPJ, textos de PDF) ou remova empresas sem orçamentos.'
+              : 'Visualização das empresas. Para cadastrar ou alterar configurações, é necessário permissão de configuração.'}
           </p>
         </div>
-        <div className="w-full sm:w-auto sm:shrink-0">
-          <Button
-            variant="primary"
-            type="button"
-            className="w-full sm:w-auto h-12 px-6 flex items-center justify-center gap-2"
-            onClick={() => navigate('/empresas/nova')}
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            Nova empresa
-          </Button>
-        </div>
+        {podeConfig && (
+          <div className="w-full sm:w-auto sm:shrink-0">
+            <Button
+              variant="primary"
+              type="button"
+              className="w-full sm:w-auto h-12 px-6 flex items-center justify-center gap-2"
+              onClick={() => navigate('/empresas/nova')}
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              Nova empresa
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card className="overflow-x-auto">
@@ -163,14 +169,21 @@ const EmpresasList = () => {
                 <th className="py-3 pr-4 font-medium w-[220px]">Nome no menu</th>
                 <th className="py-3 pr-4 font-medium">Razão social</th>
                 <th className="py-3 pr-4 font-medium">CNPJ</th>
-                <th className="py-3 pr-4 font-medium text-right w-[120px]">Ações</th>
+                {podeConfig && (
+                  <th className="py-3 pr-4 font-medium text-right w-[120px]">Ações</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {empresas.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-secondary-500">
-                    Nenhuma empresa cadastrada. Clique em &quot;Nova empresa&quot;.
+                  <td
+                    colSpan={podeConfig ? 4 : 3}
+                    className="py-8 text-center text-secondary-500"
+                  >
+                    {podeConfig
+                      ? 'Nenhuma empresa cadastrada. Clique em "Nova empresa".'
+                      : 'Nenhuma empresa cadastrada.'}
                   </td>
                 </tr>
               ) : (
@@ -181,40 +194,53 @@ const EmpresasList = () => {
                     nome_exibicao_menu:
                       drafts[emp.id] !== undefined ? drafts[emp.id] : emp.nome_exibicao_menu,
                   })
+                  const previewSomenteLeitura = getEmpresaMenuLabel(emp)
                   return (
                     <tr key={emp.id} className="border-b border-secondary-100 align-top">
                       <td className="py-3 pr-4">
-                        <div className="space-y-2">
-                          <Input
-                            type="text"
-                            value={drafts[emp.id] ?? ''}
-                            onChange={(e) =>
-                              setDrafts((prev) => ({ ...prev, [emp.id]: e.target.value }))
-                            }
-                            placeholder={emp.nome_fantasia || emp.razao_social || 'Nome curto'}
-                            className="text-sm"
-                          />
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => handleSaveMenuName(emp)}
-                              disabled={savingId === emp.id}
-                              className="flex items-center gap-1"
-                            >
-                              {savingId === emp.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Check className="w-3.5 h-3.5" />
-                              )}
-                              Salvar nome
-                            </Button>
-                            <span className="text-xs text-secondary-500 truncate max-w-[180px]" title={preview}>
-                              Menu: {preview}
-                            </span>
+                        {podeConfig ? (
+                          <div className="space-y-2">
+                            <Input
+                              type="text"
+                              value={drafts[emp.id] ?? ''}
+                              onChange={(e) =>
+                                setDrafts((prev) => ({ ...prev, [emp.id]: e.target.value }))
+                              }
+                              placeholder={emp.nome_fantasia || emp.razao_social || 'Nome curto'}
+                              className="text-sm"
+                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => handleSaveMenuName(emp)}
+                                disabled={savingId === emp.id}
+                                className="flex items-center gap-1"
+                              >
+                                {savingId === emp.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5" />
+                                )}
+                                Salvar nome
+                              </Button>
+                              <span
+                                className="text-xs text-secondary-500 truncate max-w-[180px]"
+                                title={preview}
+                              >
+                                Menu: {preview}
+                              </span>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="text-sm text-secondary-800">
+                            <span className="text-secondary-500 text-xs block mb-0.5">
+                              Nome no menu
+                            </span>
+                            {previewSomenteLeitura}
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 pr-4">
                         <div className="font-medium text-secondary-900">{emp.razao_social}</div>
@@ -230,29 +256,31 @@ const EmpresasList = () => {
                       <td className="py-3 pr-4 whitespace-nowrap text-secondary-700">
                         {formatCnpjDisplay(emp.cnpj)}
                       </td>
-                      <td className="py-3 pr-4 text-right">
-                        <div className="flex flex-row gap-2 justify-end items-center">
-                          <button
-                            type="button"
-                            onClick={() => handleAbrirConfiguracoes(emp.id)}
-                            className="p-2.5 rounded-lg border border-secondary-200 text-secondary-600 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-colors"
-                            title="Configurações da empresa"
-                            aria-label={`Configurações: ${emp.razao_social}`}
-                          >
-                            <Settings className="w-5 h-5" />
-                          </button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="danger"
-                            onClick={() => setDeleteModal({ open: true, empresa: emp })}
-                            className="flex items-center justify-center gap-1"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Excluir
-                          </Button>
-                        </div>
-                      </td>
+                      {podeConfig && (
+                        <td className="py-3 pr-4 text-right">
+                          <div className="flex flex-row gap-2 justify-end items-center">
+                            <button
+                              type="button"
+                              onClick={() => handleAbrirConfiguracoes(emp.id)}
+                              className="p-2.5 rounded-lg border border-secondary-200 text-secondary-600 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-colors"
+                              title="Configurações da empresa"
+                              aria-label={`Configurações: ${emp.razao_social}`}
+                            >
+                              <Settings className="w-5 h-5" />
+                            </button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="danger"
+                              onClick={() => setDeleteModal({ open: true, empresa: emp })}
+                              className="flex items-center justify-center gap-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Excluir
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 })

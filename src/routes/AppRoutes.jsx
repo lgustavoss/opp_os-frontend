@@ -16,6 +16,10 @@ import OrcamentoDetail from '../pages/orcamentos/OrcamentoDetail'
 import EmpresasList from '../pages/empresas/EmpresasList'
 import EmpresaForm from '../pages/empresas/EmpresaForm'
 import Perfil from '../pages/Perfil'
+import StaffRoute from '../components/common/StaffRoute'
+import ModuloRoute from '../components/common/ModuloRoute'
+import UsuariosList from '../pages/usuarios/UsuariosList'
+import UsuarioForm from '../pages/usuarios/UsuarioForm'
 
 const AppRoutes = () => {
   const { loading } = useAuth()
@@ -51,9 +55,11 @@ const AppRoutes = () => {
         path="/clientes"
         element={
           <ProtectedRoute>
-            <Layout>
-              <ClientesList />
-            </Layout>
+            <ModuloRoute modulo="clientes" nivel="visualizar">
+              <Layout>
+                <ClientesList />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -61,9 +67,11 @@ const AppRoutes = () => {
         path="/clientes/novo"
         element={
           <ProtectedRoute>
-            <Layout>
-              <ClienteForm />
-            </Layout>
+            <ModuloRoute modulo="clientes" nivel="cadastrar">
+              <Layout>
+                <ClienteForm />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -71,9 +79,11 @@ const AppRoutes = () => {
         path="/clientes/:id"
         element={
           <ProtectedRoute>
-            <Layout>
-              <ClienteDetail />
-            </Layout>
+            <ModuloRoute modulo="clientes" nivel="visualizar">
+              <Layout>
+                <ClienteDetail />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -81,9 +91,11 @@ const AppRoutes = () => {
         path="/clientes/:id/editar"
         element={
           <ProtectedRoute>
-            <Layout>
-              <ClienteForm />
-            </Layout>
+            <ModuloRoute modulo="clientes" nivel="cadastrar">
+              <Layout>
+                <ClienteForm />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -91,9 +103,11 @@ const AppRoutes = () => {
         path="/orcamentos"
         element={
           <ProtectedRoute>
-            <Layout>
-              <OrcamentosList />
-            </Layout>
+            <ModuloRoute modulo="orcamentos" nivel="visualizar">
+              <Layout>
+                <OrcamentosList />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -101,9 +115,11 @@ const AppRoutes = () => {
         path="/orcamentos/novo"
         element={
           <ProtectedRoute>
-            <Layout>
-              <OrcamentoForm />
-            </Layout>
+            <ModuloRoute modulo="orcamentos" nivel="cadastrar">
+              <Layout>
+                <OrcamentoForm />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -111,9 +127,11 @@ const AppRoutes = () => {
         path="/orcamentos/:id/editar"
         element={
           <ProtectedRoute>
-            <Layout>
-              <OrcamentoForm />
-            </Layout>
+            <ModuloRoute modulo="orcamentos" nivel="cadastrar">
+              <Layout>
+                <OrcamentoForm />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -121,9 +139,11 @@ const AppRoutes = () => {
         path="/orcamentos/:id"
         element={
           <ProtectedRoute>
-            <Layout>
-              <OrcamentoDetail />
-            </Layout>
+            <ModuloRoute modulo="orcamentos" nivel="visualizar">
+              <Layout>
+                <OrcamentoDetail />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -131,9 +151,11 @@ const AppRoutes = () => {
         path="/empresas/nova"
         element={
           <ProtectedRoute>
-            <Layout>
-              <EmpresaForm />
-            </Layout>
+            <ModuloRoute modulo="configuracoes" nivel="configurar">
+              <Layout>
+                <EmpresaForm />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -141,9 +163,11 @@ const AppRoutes = () => {
         path="/empresas/:id/editar"
         element={
           <ProtectedRoute>
-            <Layout>
-              <EmpresaForm />
-            </Layout>
+            <ModuloRoute modulo="configuracoes" nivel="configurar">
+              <Layout>
+                <EmpresaForm />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -151,9 +175,11 @@ const AppRoutes = () => {
         path="/empresas"
         element={
           <ProtectedRoute>
-            <Layout>
-              <EmpresasList />
-            </Layout>
+            <ModuloRoute modulo="configuracoes" nivel="visualizar">
+              <Layout>
+                <EmpresasList />
+              </Layout>
+            </ModuloRoute>
           </ProtectedRoute>
         }
       />
@@ -167,6 +193,36 @@ const AppRoutes = () => {
               <Perfil />
             </Layout>
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/usuarios"
+        element={
+          <StaffRoute>
+            <Layout>
+              <UsuariosList />
+            </Layout>
+          </StaffRoute>
+        }
+      />
+      <Route
+        path="/usuarios/novo"
+        element={
+          <StaffRoute>
+            <Layout>
+              <UsuarioForm />
+            </Layout>
+          </StaffRoute>
+        }
+      />
+      <Route
+        path="/usuarios/:id/editar"
+        element={
+          <StaffRoute>
+            <Layout>
+              <UsuarioForm />
+            </Layout>
+          </StaffRoute>
         }
       />
 

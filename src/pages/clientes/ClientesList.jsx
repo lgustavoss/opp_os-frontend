@@ -10,8 +10,10 @@ import Badge from '../../components/ui/Badge'
 import Checkbox from '../../components/ui/Checkbox'
 import { clienteService } from '../../services/clienteService'
 import { formatCNPJCPF } from '../../utils/formatters'
+import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 
 const ClientesList = () => {
+  const perm = usePermissoesModulos()
   const [clientes, setClientes] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -99,12 +101,14 @@ const ClientesList = () => {
             Gerencie seus clientes
           </p>
         </div>
-        <Link to="/clientes/novo">
-          <Button variant="primary" className="flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Novo Cliente
-          </Button>
-        </Link>
+        {perm.clientes_pode_cadastrar && (
+          <Link to="/clientes/novo">
+            <Button variant="primary" className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Novo Cliente
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Card className="overflow-hidden">
@@ -223,19 +227,24 @@ const ClientesList = () => {
                                 <Eye className="w-4 h-4" />
                               </button>
                             </Link>
-                            <Link to={`/clientes/${cliente.id}/editar`}>
-                              <button className="p-2 rounded-lg hover:bg-secondary-100 text-secondary-600 transition-colors">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                            </Link>
-                            <button
-                              onClick={() =>
-                                setDeleteModal({ isOpen: true, cliente })
-                              }
-                              className="p-2 rounded-lg hover:bg-danger-50 text-danger-600 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {perm.clientes_pode_cadastrar && (
+                              <>
+                                <Link to={`/clientes/${cliente.id}/editar`}>
+                                  <button className="p-2 rounded-lg hover:bg-secondary-100 text-secondary-600 transition-colors">
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setDeleteModal({ isOpen: true, cliente })
+                                  }
+                                  className="p-2 rounded-lg hover:bg-danger-50 text-danger-600 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -290,19 +299,24 @@ const ClientesList = () => {
                           <Eye className="w-4 h-4" />
                         </button>
                       </Link>
-                      <Link to={`/clientes/${cliente.id}/editar`}>
-                        <button className="p-2 rounded-lg hover:bg-secondary-100 text-secondary-600 transition-colors">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </Link>
-                      <button
-                        onClick={() =>
-                          setDeleteModal({ isOpen: true, cliente })
-                        }
-                        className="p-2 rounded-lg hover:bg-danger-50 text-danger-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {perm.clientes_pode_cadastrar && (
+                        <>
+                          <Link to={`/clientes/${cliente.id}/editar`}>
+                            <button className="p-2 rounded-lg hover:bg-secondary-100 text-secondary-600 transition-colors">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDeleteModal({ isOpen: true, cliente })
+                            }
+                            className="p-2 rounded-lg hover:bg-danger-50 text-danger-600 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </Card>

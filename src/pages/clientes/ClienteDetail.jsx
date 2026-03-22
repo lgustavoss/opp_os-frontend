@@ -10,6 +10,7 @@ import { clienteService } from '../../services/clienteService'
 import { orcamentoService } from '../../services/orcamentoService'
 import { formatCNPJCPF, formatCEP, formatTelefone, formatDate, formatCurrency, sanitizeFilename } from '../../utils/formatters'
 import { useNavigate } from 'react-router-dom'
+import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 
 const statusOrcamentoLabel = {
   rascunho: 'Rascunho',
@@ -23,6 +24,7 @@ const statusOrcamentoLabel = {
 const ClienteDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const perm = usePermissoesModulos()
   const [cliente, setCliente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [deleteModal, setDeleteModal] = useState(false)
@@ -131,22 +133,24 @@ const ClienteDetail = () => {
             <p className="text-secondary-600 mt-1">Detalhes do cliente</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link to={`/clientes/${id}/editar`}>
-            <Button variant="secondary" className="flex items-center gap-2">
-              <Edit className="w-4 h-4" />
-              Editar
+        {perm.clientes_pode_cadastrar && (
+          <div className="flex items-center gap-2">
+            <Link to={`/clientes/${id}/editar`}>
+              <Button variant="secondary" className="flex items-center gap-2">
+                <Edit className="w-4 h-4" />
+                Editar
+              </Button>
+            </Link>
+            <Button
+              variant="danger"
+              onClick={() => setDeleteModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Excluir
             </Button>
-          </Link>
-          <Button
-            variant="danger"
-            onClick={() => setDeleteModal(true)}
-            className="flex items-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            Excluir
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Uma linha com os 3 cards para melhor uso do espaço */}
@@ -242,6 +246,12 @@ const ClienteDetail = () => {
                 <dd className="text-secondary-900">{formatDate(cliente.data_ultima_alteracao)}</dd>
               </div>
             )}
+            {cliente.usuario_ultima_alteracao_nome && (
+              <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+                <dt className="text-secondary-500 shrink-0">Última alteração por:</dt>
+                <dd className="text-secondary-900">{cliente.usuario_ultima_alteracao_nome}</dd>
+              </div>
+            )}
           </dl>
         </Card>
       </div>
@@ -253,12 +263,14 @@ const ClienteDetail = () => {
             <FileText className="w-5 h-5 text-primary-600" />
             Orçamentos deste cliente
           </h2>
-          <Link to={`/orcamentos/novo?cliente=${cliente.id}`} className="w-full sm:w-auto">
-            <Button variant="primary" size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
-              <FileText className="w-4 h-4" />
-              Novo orçamento
-            </Button>
-          </Link>
+          {perm.orcamentos_pode_cadastrar && (
+            <Link to={`/orcamentos/novo?cliente=${cliente.id}`} className="w-full sm:w-auto">
+              <Button variant="primary" size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
+                <FileText className="w-4 h-4" />
+                Novo orçamento
+              </Button>
+            </Link>
+          )}
         </div>
         {orcamentosLoading ? (
           <div className="py-8 flex justify-center">
