@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   FileText,
+  Package,
   Building2,
   Settings,
   X,
@@ -30,6 +31,12 @@ const menuItemsBase = [
     path: '/orcamentos',
     label: 'Orçamentos',
     icon: FileText,
+    permKey: 'orcamentosVer',
+  },
+  {
+    path: '/produtos',
+    label: 'Produtos',
+    icon: Package,
     permKey: 'orcamentosVer',
   },
 ]

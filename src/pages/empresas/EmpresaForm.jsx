@@ -194,6 +194,8 @@ const EmpresaForm = () => {
       return
     }
     setLoading(false)
+    // seloInputRefs é estável (refs); não deve disparar reexecução do efeito
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCreateMode, isEditMode, editId, loadEmpresaById])
 
   const handleLogomarcaChange = (e) => {
@@ -303,11 +305,11 @@ const EmpresaForm = () => {
     if (isEditMode && removerLogomarcaPending && !logomarcaFile) {
       p.remover_logomarca = true
     }
-    ;[1, 2, 3].forEach((i) => {
+    for (const i of [1, 2, 3]) {
       if (isEditMode && removerSeloPending[i] && !seloFiles[i]) {
         p[`remover_selo_certificacao_${i}`] = true
       }
-    })
+    }
     return p
   }
 

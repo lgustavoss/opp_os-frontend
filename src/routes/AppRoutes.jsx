@@ -13,6 +13,7 @@ import ClienteDetail from '../pages/clientes/ClienteDetail'
 import OrcamentosList from '../pages/orcamentos/OrcamentosList'
 import OrcamentoForm from '../pages/orcamentos/OrcamentoForm'
 import OrcamentoDetail from '../pages/orcamentos/OrcamentoDetail'
+import ProdutosList from '../pages/produtos/ProdutosList'
 import EmpresasList from '../pages/empresas/EmpresasList'
 import EmpresaForm from '../pages/empresas/EmpresaForm'
 import StatusOrcamentosList from '../pages/configuracoes/StatusOrcamentosList'
@@ -143,6 +144,18 @@ const AppRoutes = () => {
             <ModuloRoute modulo="orcamentos" nivel="visualizar">
               <Layout>
                 <OrcamentoDetail />
+              </Layout>
+            </ModuloRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/produtos"
+        element={
+          <ProtectedRoute>
+            <ModuloRoute modulo="orcamentos" nivel="visualizar">
+              <Layout>
+                <ProdutosList />
               </Layout>
             </ModuloRoute>
           </ProtectedRoute>

@@ -20,6 +20,7 @@ const UsuariosList = () => {
 
   useEffect(() => {
     loadUsuarios()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page])
 
   const loadUsuarios = async () => {

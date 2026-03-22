@@ -45,6 +45,7 @@ const OrcamentosList = () => {
 
   useEffect(() => {
     loadOrcamentos()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [empresaAtual?.id, page, appliedSearch, viewExcluidos])
 
   const loadOrcamentos = async () => {

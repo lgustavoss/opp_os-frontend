@@ -84,6 +84,8 @@ export default function ClienteSelect({
         if (!cancelled) setSelectedLabel(`Cliente #${selectedValue}`)
       })
     return () => { cancelled = true }
+    // selectedLabel omitido: incluir causaria refetch desnecessário quando o rótulo já veio da API
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedValue])
 
   const handleSelect = (cliente) => {

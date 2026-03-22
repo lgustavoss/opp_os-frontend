@@ -51,6 +51,7 @@ const ClienteDetail = () => {
 
   useEffect(() => {
     loadCliente()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   useEffect(() => {
@@ -70,6 +71,7 @@ const ClienteDetail = () => {
 
   useEffect(() => {
     if (cliente?.id && String(cliente.id) === String(id)) loadOrcamentos()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cliente?.id, id, orcamentosPage, orcamentosBusca])
 
   useEffect(() => {

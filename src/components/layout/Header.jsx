@@ -3,7 +3,7 @@ import { Menu, X, LogOut, User, Building2, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { getEmpresaMenuLabel } from '../../utils/empresaDisplay'
 import { getNavbarUserDisplayName, getNavbarUserInitials } from '../../utils/userDisplay'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Select from '../ui/Select'
 
 const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }) => {
@@ -51,9 +51,16 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
         <div className="flex items-center h-16 gap-2 sm:gap-3 min-w-0">
           {/* Esquerda: marca + menu */}
           <div className="flex items-center gap-2 shrink-0">
-            <h1 className="text-xl font-bold text-primary-600 shrink-0">
-              Sistema OS
-            </h1>
+            <Link
+              to="/"
+              className="shrink-0 rounded-lg px-1 -mx-1 transition-colors hover:bg-primary-50/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              title="Ir para o painel inicial"
+              aria-label="Sistema OS — painel inicial"
+            >
+              <h1 className="text-xl font-bold text-primary-600 hover:text-primary-700">
+                Sistema OS
+              </h1>
+            </Link>
 
             <button
               onClick={onMenuClick}
