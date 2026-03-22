@@ -59,6 +59,13 @@ export const API_ENDPOINTS = {
     list: '/status-orcamentos/',
     detail: (id) => `/status-orcamentos/${id}/`,
   },
+  produtos: {
+    list: '/produtos/',
+    detail: (codigo) => `/produtos/${codigo}/`,
+    create: '/produtos/',
+    update: (codigo) => `/produtos/${codigo}/`,
+    delete: (codigo) => `/produtos/${codigo}/`,
+  },
   // Itens de Orçamento
   itensOrcamento: {
     list: '/itens-orcamento/',

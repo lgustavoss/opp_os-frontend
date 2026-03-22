@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -27,6 +27,7 @@ const ClientesList = () => {
 
   useEffect(() => {
     loadClientes()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, incluirInativos])
 
   const loadClientes = async () => {

@@ -43,7 +43,8 @@ const ClienteForm = () => {
     if (isEdit) {
       loadCliente()
     }
-  }, [id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isEdit])
 
   // Aplica máscara quando o tipo de documento muda (apenas se já houver valor)
   useEffect(() => {

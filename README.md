@@ -22,8 +22,8 @@ Aplicação frontend desenvolvida com React + Vite + Tailwind CSS para gerenciam
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/lgustavoss/opp_os-frontend.git
-cd opp_os-frontend
+git clone https://github.com/lgustavoss/app_os-frontend.git
+cd app_os-frontend
 ```
 
 2. Instale as dependências:
@@ -99,7 +99,7 @@ A aplicação se comunica com o backend Django REST Framework. Em desenvolviment
 Para configurar a URL da API em produção, crie um arquivo `.env` na raiz:
 
 ```env
-VITE_API_BASE_URL=https://sua-api.com/api
+VITE_API_BASE_URL=https://sua-api.com/api/v1
 ```
 
 ## 🔐 Autenticação
