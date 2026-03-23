@@ -1,6 +1,6 @@
 # Sistema OS - Frontend
 
-Aplicação frontend desenvolvida com React + Vite + Tailwind CSS para gerenciamento de orçamentos, clientes e configurações da empresa.
+Aplicação frontend desenvolvida com React + Vite + Tailwind CSS para gerenciamento de orçamentos, clientes e configurações da empresa. Este repositório é **independente** da API (backend tem o seu próprio GitHub e deploy); em produção defina `VITE_API_BASE_URL` para a URL pública da API.
 
 ## 🚀 Tecnologias
 
@@ -107,6 +107,7 @@ VITE_API_BASE_URL=https://sua-api.com/api/v1
 - A tela de login é pública
 - Demais rotas requerem autenticação
 - Autenticação por sessão (cookies) com CSRF token
+- Se `VITE_API_BASE_URL` for uma URL absoluta **num domínio diferente** do site, ao arrancar a app chama `GET .../auth/csrf/` na API para obter o token (o cookie da API não é legível no JavaScript do front)
 
 ## 📦 Scripts Disponíveis
 

@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   },
   // Autenticação
   auth: {
+    csrf: '/auth/csrf/',
     login: '/auth/login/',
     logout: '/auth/logout/',
     user: '/auth/user/',

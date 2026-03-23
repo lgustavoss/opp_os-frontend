@@ -1,5 +1,18 @@
 import axios from 'axios'
-import { API_BASE_URL } from '../config/api'
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api'
+
+function isCrossOriginApiBase() {
+  if (typeof window === 'undefined') return false
+  if (!API_BASE_URL.startsWith('http')) return false
+  try {
+    return new URL(API_BASE_URL).origin !== window.location.origin
+  } catch {
+    return false
+  }
+}
+
+/** Token obtido via GET /auth/csrf/ quando a API está noutra origem (deploy separado). */
+let csrfTokenFromApi = null
 
 /**
  * Função para obter o CSRF token dos cookies
@@ -21,6 +34,22 @@ const getCsrfToken = () => {
 }
 
 /**
+ * Obtém CSRF no domínio da API (necessário se o SPA não partilha origem com a API).
+ * Em desenvolvimento com proxy (base `/api/v1`) não faz pedido extra.
+ */
+export async function initApiClient() {
+  if (!isCrossOriginApiBase()) return
+  const base = API_BASE_URL.replace(/\/$/, '')
+  const url = `${base}${API_ENDPOINTS.auth.csrf}`
+  const res = await fetch(url, { method: 'GET', credentials: 'include' })
+  if (!res.ok) {
+    throw new Error(`Falha ao obter CSRF da API (${res.status})`)
+  }
+  const data = await res.json()
+  csrfTokenFromApi = data.csrfToken ?? null
+}
+
+/**
  * Instância do axios configurada com a URL base da API
  * Inclui credenciais para suportar autenticação por sessão (cookies)
  */
@@ -38,7 +67,7 @@ api.interceptors.request.use(
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type']
     }
-    const csrfToken = getCsrfToken()
+    const csrfToken = csrfTokenFromApi || getCsrfToken()
     if (csrfToken) {
       config.headers['X-CSRFToken'] = csrfToken
     }
