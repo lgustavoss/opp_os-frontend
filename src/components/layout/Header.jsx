@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Menu, X, LogOut, User, Building2, ChevronDown } from 'lucide-react'
+import { Menu, X, LogOut, User, Building2, ChevronDown, Moon, Sun } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { getEmpresaMenuLabel } from '../../utils/empresaDisplay'
 import { getNavbarUserDisplayName, getNavbarUserInitials } from '../../utils/userDisplay'
 import { Link, useNavigate } from 'react-router-dom'
@@ -8,6 +9,7 @@ import Select from '../ui/Select'
 
 const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }) => {
   const { user, logout, empresaAtual, empresas, setEmpresaAtual } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef(null)
@@ -47,24 +49,24 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
 
   return (
     <header className="bg-white shadow-sm border-b border-secondary-200 sticky top-0 z-40">
-      <div className="container-app">
+      <div className="w-full px-4 sm:px-6 lg:px-0">
         <div className="flex items-center h-16 gap-2 sm:gap-3 min-w-0">
           {/* Esquerda: marca + menu */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="relative flex items-center shrink-0 w-[220px] lg:w-64">
             <Link
               to="/"
-              className="shrink-0 rounded-lg px-1 -mx-1 transition-colors hover:bg-primary-50/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              className="absolute left-1/2 -translate-x-1/2 px-1 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/70 rounded-sm"
               title="Ir para o painel inicial"
-              aria-label="Sistema OS — painel inicial"
+              aria-label="DX Control — painel inicial"
             >
-              <h1 className="text-xl font-bold text-primary-600 hover:text-primary-700">
-                Sistema OS
+              <h1 className="text-xl font-bold text-primary-600 hover:text-primary-700 leading-none whitespace-nowrap">
+                DX Control
               </h1>
             </Link>
 
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-lg hover:bg-secondary-100 transition-colors"
+              className="lg:hidden ml-auto p-2 rounded-lg hover:bg-secondary-100 transition-colors relative z-10"
               aria-label="Menu"
             >
               {isMenuOpen ? (
@@ -77,7 +79,7 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
             {onSidebarToggle && (
               <button
                 onClick={onSidebarToggle}
-                className="hidden lg:flex p-2 rounded-lg hover:bg-secondary-100 transition-colors"
+                className="hidden lg:flex ml-auto p-2 rounded-lg hover:bg-secondary-100 transition-colors relative z-10"
                 aria-label={isSidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
               >
                 <Menu className="w-6 h-6 text-secondary-700" />
@@ -163,6 +165,20 @@ const Header = ({ onMenuClick, isMenuOpen, onSidebarToggle, isSidebarCollapsed }
                       </div>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toggleTheme()
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary-700 hover:bg-secondary-50 transition-colors text-left"
+                  >
+                    {isDark ? (
+                      <Sun className="w-4 h-4 text-secondary-500" />
+                    ) : (
+                      <Moon className="w-4 h-4 text-secondary-500" />
+                    )}
+                    {isDark ? 'Usar tema claro' : 'Usar tema escuro'}
+                  </button>
                   <button
                     type="button"
                     onClick={() => {

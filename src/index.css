@@ -12,6 +12,55 @@
   }
 }
 
+/* Tema dark global (opcional) */
+html[data-theme='dark'] body {
+  background:
+    radial-gradient(900px 600px at 10% 10%, rgba(0, 220, 255, 0.10) 0%, rgba(0, 220, 255, 0) 55%),
+    radial-gradient(900px 700px at 85% 85%, rgba(80, 120, 255, 0.08) 0%, rgba(80, 120, 255, 0) 60%),
+    linear-gradient(180deg, #040817 0%, #050a1a 60%, #040817 100%) !important;
+  color: #e2e8f0;
+}
+
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .bg-white {
+  background: rgba(15, 23, 42, 0.70) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+html[data-theme='dark'] .border-secondary-200,
+html[data-theme='dark'] .border-secondary-100,
+html[data-theme='dark'] .border-secondary-300 {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+html[data-theme='dark'] .text-secondary-900 { color: #f8fafc !important; }
+html[data-theme='dark'] .text-secondary-800 { color: #e2e8f0 !important; }
+html[data-theme='dark'] .text-secondary-700 { color: #cbd5e1 !important; }
+html[data-theme='dark'] .text-secondary-600 { color: #94a3b8 !important; }
+html[data-theme='dark'] .text-secondary-500 { color: #94a3b8 !important; }
+
+html[data-theme='dark'] .bg-secondary-50 { background-color: transparent !important; }
+html[data-theme='dark'] .bg-secondary-100 { background-color: rgba(30, 41, 59, 0.55) !important; }
+html[data-theme='dark'] .bg-secondary-200 { background-color: rgba(51, 65, 85, 0.65) !important; }
+html[data-theme='dark'] .hover\:bg-secondary-50:hover { background-color: rgba(30, 41, 59, 0.45) !important; }
+html[data-theme='dark'] .hover\:bg-secondary-100:hover { background-color: rgba(51, 65, 85, 0.55) !important; }
+
+html[data-theme='dark'] .input-base,
+html[data-theme='dark'] input,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] select {
+  background-color: rgba(15, 23, 42, 0.55);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
+  color: #94a3b8;
+}
+
 @layer components {
   .container-app {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
