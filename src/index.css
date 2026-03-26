@@ -46,6 +46,12 @@ html[data-theme='dark'] .bg-secondary-100 { background-color: rgba(30, 41, 59, 0
 html[data-theme='dark'] .bg-secondary-200 { background-color: rgba(51, 65, 85, 0.65) !important; }
 html[data-theme='dark'] .hover\:bg-secondary-50:hover { background-color: rgba(30, 41, 59, 0.45) !important; }
 html[data-theme='dark'] .hover\:bg-secondary-100:hover { background-color: rgba(51, 65, 85, 0.55) !important; }
+html[data-theme='dark'] .app-actions-bar {
+  background: rgba(2, 6, 23, 0.88) !important;
+  border-top-color: rgba(148, 163, 184, 0.24) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
 
 html[data-theme='dark'] .input-base,
 html[data-theme='dark'] input,

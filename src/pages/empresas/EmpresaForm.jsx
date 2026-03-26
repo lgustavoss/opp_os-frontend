@@ -1124,7 +1124,7 @@ const EmpresaForm = () => {
       </Card>
 
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-secondary-200 bg-white/95 backdrop-blur-sm shadow-[0_-4px_24px_rgba(15,23,42,0.08)]"
+        className="app-actions-bar empresa-form-actions-bar fixed bottom-0 left-0 right-0 z-40 border-t border-secondary-200 bg-white/95 backdrop-blur-sm shadow-[0_-4px_24px_rgba(15,23,42,0.08)]"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="container-app py-3 flex flex-wrap items-center justify-end gap-3">

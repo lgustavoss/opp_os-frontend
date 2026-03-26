@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Package, Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Package, Plus, Pencil, Trash2, Search, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -13,6 +13,7 @@ import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 const emptyForm = () => ({
   descricao: '',
   valor: '',
+  saldo_estoque: '0',
 })
 
 const ProdutosList = () => {
@@ -29,6 +30,9 @@ const ProdutosList = () => {
   const [saving, setSaving] = useState(false)
   const [deleteModal, setDeleteModal] = useState({ open: false, row: null })
   const [deleting, setDeleting] = useState(false)
+  const [movModal, setMovModal] = useState({ open: false, row: null, tipo: 'entrada' })
+  const [movForm, setMovForm] = useState({ quantidade: '', observacao: '' })
+  const [moving, setMoving] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil((totalCount || 0) / API_PAGE_SIZE))
 
@@ -61,6 +65,7 @@ const ProdutosList = () => {
     setForm({
       descricao: row.descricao || '',
       valor: row.valor != null ? String(row.valor) : '',
+      saldo_estoque: row.saldo_estoque != null ? String(row.saldo_estoque) : '0',
     })
     setFormModal({ open: true, editing: row })
   }
@@ -73,6 +78,7 @@ const ProdutosList = () => {
     e.preventDefault()
     const descricao = (form.descricao || '').trim()
     const valor = parseFloat(String(form.valor).replace(',', '.'))
+    const saldoEstoque = parseFloat(String(form.saldo_estoque).replace(',', '.'))
     if (!descricao) {
       alert('Informe a descrição.')
       return
@@ -81,17 +87,23 @@ const ProdutosList = () => {
       alert('Informe um valor válido.')
       return
     }
+    if (Number.isNaN(saldoEstoque) || saldoEstoque < 0) {
+      alert('Informe um saldo de estoque válido.')
+      return
+    }
     try {
       setSaving(true)
       if (formModal.editing) {
         await produtoService.update(formModal.editing.codigo, {
           descricao,
           valor: valor.toFixed(2),
+          saldo_estoque: saldoEstoque.toFixed(3),
         })
       } else {
         await produtoService.create({
           descricao,
           valor: valor.toFixed(2),
+          saldo_estoque: saldoEstoque.toFixed(3),
         })
       }
       setFormModal({ open: false, editing: null })
@@ -100,7 +112,7 @@ const ProdutosList = () => {
       const d = err.response?.data
       const msg =
         (typeof d === 'object' &&
-          (d.descricao?.[0] || d.valor?.[0] || d.detail || d.erro)) ||
+          (d.descricao?.[0] || d.valor?.[0] || d.saldo_estoque?.[0] || d.detail || d.erro)) ||
         'Não foi possível salvar.'
       alert(typeof msg === 'string' ? msg : 'Não foi possível salvar.')
     } finally {
@@ -129,7 +141,42 @@ const ProdutosList = () => {
     setSearch(searchInput)
   }
 
-  const colCount = podeCadastrar ? 4 : 3
+  const openMovModal = (row, tipo) => {
+    setMovForm({
+      quantidade: '',
+      observacao: tipo === 'entrada' ? 'Entrada manual de estoque.' : 'Saída manual de estoque.',
+    })
+    setMovModal({ open: true, row, tipo })
+  }
+
+  const handleSubmitMov = async (e) => {
+    e.preventDefault()
+    const qtd = parseFloat(String(movForm.quantidade).replace(',', '.'))
+    if (Number.isNaN(qtd) || qtd <= 0) {
+      alert('Informe uma quantidade válida.')
+      return
+    }
+    try {
+      setMoving(true)
+      await produtoService.movimentarEstoque(movModal.row.codigo, {
+        tipo: movModal.tipo,
+        quantidade: qtd.toFixed(3),
+        observacao: (movForm.observacao || '').trim(),
+      })
+      setMovModal({ open: false, row: null, tipo: 'entrada' })
+      await load()
+    } catch (err) {
+      const d = err.response?.data
+      const msg =
+        (typeof d === 'object' && (d.quantidade?.[0] || d.tipo?.[0] || d.detail || d.erro)) ||
+        'Não foi possível movimentar estoque.'
+      alert(typeof msg === 'string' ? msg : 'Não foi possível movimentar estoque.')
+    } finally {
+      setMoving(false)
+    }
+  }
+
+  const colCount = podeCadastrar ? 5 : 4
 
   if (loading && items.length === 0) {
     return <Loading fullScreen />
@@ -144,8 +191,7 @@ const ProdutosList = () => {
             Produtos
           </h1>
           <p className="text-secondary-600 mt-1 max-w-2xl">
-            Cadastro simples (código sequencial, descrição e valor) para reutilizar nos orçamentos. Sem controle
-            de estoque.
+            Cadastro de produtos com controle de estoque: entrada, saída e ajuste direto de saldo.
           </p>
         </div>
         {podeCadastrar && (
@@ -175,13 +221,14 @@ const ProdutosList = () => {
       </Card>
 
       <Card className="overflow-x-auto">
-        <table className="w-full min-w-[480px] text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-secondary-200 text-left text-secondary-600">
               <th className="py-3 px-2 font-medium w-24">Código</th>
               <th className="py-3 px-2 font-medium">Descrição</th>
               <th className="py-3 px-2 font-medium w-36">Valor</th>
-              {podeCadastrar && <th className="py-3 px-2 font-medium text-right w-[120px]">Ações</th>}
+              <th className="py-3 px-2 font-medium w-36">Saldo</th>
+              {podeCadastrar && <th className="py-3 px-2 font-medium text-right w-[220px]">Ações</th>}
             </tr>
           </thead>
           <tbody>
@@ -197,9 +244,26 @@ const ProdutosList = () => {
                   <td className="py-3 px-2 text-secondary-800 font-mono">{row.codigo}</td>
                   <td className="py-3 px-2 font-medium text-secondary-900">{row.descricao}</td>
                   <td className="py-3 px-2 text-secondary-800">{formatCurrency(parseFloat(row.valor) || 0)}</td>
+                  <td className="py-3 px-2 text-secondary-800 font-semibold">{Number(row.saldo_estoque || 0).toFixed(3)}</td>
                   {podeCadastrar && (
                     <td className="py-3 px-2 text-right">
                       <div className="flex justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openMovModal(row, 'entrada')}
+                          className="p-2 rounded-lg hover:bg-success-50 text-success-700"
+                          title="Entrada de estoque"
+                        >
+                          <ArrowUpCircle className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openMovModal(row, 'saida')}
+                          className="p-2 rounded-lg hover:bg-warning-50 text-warning-700"
+                          title="Saída de estoque"
+                        >
+                          <ArrowDownCircle className="w-4 h-4" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => openEdit(row)}
@@ -282,6 +346,56 @@ const ProdutosList = () => {
             value={form.valor}
             onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))}
             required
+          />
+          <Input
+            label="Saldo em estoque"
+            type="number"
+            step="0.001"
+            min="0"
+            value={form.saldo_estoque}
+            onChange={(e) => setForm((f) => ({ ...f, saldo_estoque: e.target.value }))}
+            required
+          />
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={movModal.open}
+        onClose={() => !moving && setMovModal({ open: false, row: null, tipo: 'entrada' })}
+        title={`${movModal.tipo === 'entrada' ? 'Entrada' : 'Saída'} de estoque`}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setMovModal({ open: false, row: null, tipo: 'entrada' })}
+              disabled={moving}
+            >
+              Cancelar
+            </Button>
+            <Button variant="primary" type="submit" form="form-mov-estoque" isLoading={moving}>
+              Confirmar
+            </Button>
+          </>
+        }
+      >
+        <form id="form-mov-estoque" onSubmit={handleSubmitMov} className="space-y-4">
+          <p className="text-sm text-secondary-700">
+            Produto <strong>#{movModal.row?.codigo}</strong> - {movModal.row?.descricao}
+          </p>
+          <Input
+            label="Quantidade"
+            type="number"
+            step="0.001"
+            min="0.001"
+            value={movForm.quantidade}
+            onChange={(e) => setMovForm((f) => ({ ...f, quantidade: e.target.value }))}
+            required
+          />
+          <Input
+            label="Observação"
+            value={movForm.observacao}
+            onChange={(e) => setMovForm((f) => ({ ...f, observacao: e.target.value }))}
           />
         </form>
       </Modal>
