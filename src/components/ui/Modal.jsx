@@ -33,12 +33,12 @@ const Modal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+      className="app-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <div
         className={`
-          bg-white rounded-xl shadow-xl w-full ${sizeClasses[size]}
+          app-modal-panel bg-white rounded-xl shadow-xl w-full ${sizeClasses[size]}
           max-h-[90vh] overflow-y-auto
         `}
         onClick={(e) => e.stopPropagation()}

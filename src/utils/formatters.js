@@ -151,6 +151,49 @@ export const formatCurrency = (value) => {
 }
 
 /**
+ * Máscara para digitação de moeda (BRL).
+ * - Entrada: string qualquer (ex.: "1234", "R$ 12,34")
+ * - Saída: string formatada (ex.: "R$ 12,34"), baseada em centavos.
+ */
+export const applyCurrencyMaskBRL = (value) => {
+  const digits = String(value ?? '').replace(/\D/g, '')
+  if (!digits) return ''
+  const cents = parseInt(digits, 10)
+  if (Number.isNaN(cents)) return ''
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(cents / 100)
+}
+
+/**
+ * Converte "R$ 1.234,56" (ou variações) em número JS.
+ * Retorna NaN se não houver dígitos.
+ */
+export const parseCurrencyBRL = (value) => {
+  const digits = String(value ?? '').replace(/\D/g, '')
+  if (!digits) return Number.NaN
+  const cents = parseInt(digits, 10)
+  return Number.isNaN(cents) ? Number.NaN : cents / 100
+}
+
+/**
+ * Decimal no padrão pt-BR (vírgula nos decimais, ponto só como separador de milhar).
+ * Evita confusão de usar `.` como decimal (ex.: estoque 15,000 vs "15mil").
+ */
+export const formatDecimalPtBR = (value, { minFrac = 0, maxFrac = 3 } = {}) => {
+  const n =
+    typeof value === 'string'
+      ? parseFloat(String(value).replace(',', '.'))
+      : Number(value)
+  if (Number.isNaN(n)) return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: minFrac, maximumFractionDigits: maxFrac }).format(0)
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: minFrac,
+    maximumFractionDigits: maxFrac,
+  }).format(n)
+}
+
+/**
  * Formata data
  */
 export const formatDate = (dateString, options = {}) => {

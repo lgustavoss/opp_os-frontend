@@ -116,6 +116,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed = false }) => {
 
       <aside
         className={`
+          app-sidebar
           fixed lg:sticky top-0 left-0 bottom-0 z-50
           h-full min-h-screen lg:min-h-0 lg:h-full lg:self-stretch
           bg-white border-r border-secondary-200

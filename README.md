@@ -42,6 +42,16 @@ npm run dev
 
 A aplicação estará disponível em `http://localhost:3000`
 
+O Vite encaminha `/api` e `/media` para `http://localhost:8000`. Com a API Django rodando nessa porta, login e upload de arquivos funcionam como em produção.
+
+**Monorepo (raiz com `backend/` + `frontend/`):**
+
+1. Na raiz: `docker compose -f docker-compose.dev.yml up -d --build` (Postgres + API na **8000**), ou `INICIAR-DEV.bat`.
+2. Se estiver usando o `docker-compose.yml` de produção, pare antes para liberar a **8000** (ex.: `docker compose down`).
+3. Em `frontend/`: `npm install` e `npm run dev`.
+
+Detalhes: `docs/DESENVOLVIMENTO.md`.
+
 ### Build para Produção
 
 ```bash
