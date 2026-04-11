@@ -66,6 +66,8 @@ export const API_ENDPOINTS = {
     create: '/produtos/',
     update: (codigo) => `/produtos/${codigo}/`,
     delete: (codigo) => `/produtos/${codigo}/`,
+    movimentarEstoque: (codigo) => `/produtos/${codigo}/movimentar_estoque/`,
+    movimentacoes: (codigo) => `/produtos/${codigo}/movimentacoes/`,
   },
   // Itens de Orçamento
   itensOrcamento: {

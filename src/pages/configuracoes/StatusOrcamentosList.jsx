@@ -9,15 +9,18 @@ import Badge from '../../components/ui/Badge'
 import Checkbox from '../../components/ui/Checkbox'
 import { statusOrcamentoService } from '../../services/statusOrcamentoService'
 import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
+import { useToast } from '../../contexts/ToastContext'
 
 const emptyForm = () => ({
   nome: '',
   ordem: '0',
   ativo: true,
+  movimenta_estoque_saida: false,
 })
 
 const StatusOrcamentosList = () => {
   const perm = usePermissoesModulos()
+  const toast = useToast()
   const podeConfig = perm.configuracoes_pode_configurar
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -34,7 +37,7 @@ const StatusOrcamentosList = () => {
       setItems(list)
     } catch (e) {
       console.error(e)
-      alert('Não foi possível carregar os status de orçamentos.')
+      toast.error('Não foi possível carregar os status de orçamentos.')
     } finally {
       setLoading(false)
     }
@@ -54,6 +57,7 @@ const StatusOrcamentosList = () => {
       nome: row.nome || '',
       ordem: String(row.ordem ?? 0),
       ativo: Boolean(row.ativo),
+      movimenta_estoque_saida: Boolean(row.movimenta_estoque_saida),
     })
     setFormModal({ open: true, editing: row })
   }
@@ -66,8 +70,15 @@ const StatusOrcamentosList = () => {
     e.preventDefault()
     const nome = (form.nome || '').trim()
     const ordem = parseInt(String(form.ordem).replace(/\D/g, ''), 10) || 0
+    const outroStatusMovimentaEstoque = items.some(
+      (item) => item.movimenta_estoque_saida && item.id !== formModal.editing?.id
+    )
     if (!nome) {
-      alert('Informe o nome exibido.')
+      toast.warning('Informe o nome exibido.')
+      return
+    }
+    if (form.movimenta_estoque_saida && outroStatusMovimentaEstoque) {
+      toast.warning('Só é possível 1 status com movimentação automática de estoque.')
       return
     }
     try {
@@ -77,12 +88,14 @@ const StatusOrcamentosList = () => {
           nome,
           ordem,
           ativo: form.ativo,
+          movimenta_estoque_saida: form.movimenta_estoque_saida,
         })
       } else {
         await statusOrcamentoService.create({
           nome,
           ordem,
           ativo: form.ativo,
+          movimenta_estoque_saida: form.movimenta_estoque_saida,
         })
       }
       setFormModal({ open: false, editing: null })
@@ -91,9 +104,13 @@ const StatusOrcamentosList = () => {
       const d = err.response?.data
       const msg =
         (typeof d === 'object' &&
-          (d.nome?.[0] || d.detail || d.erro)) ||
+          (d.nome?.[0] ||
+            d.movimenta_estoque_saida?.[0] ||
+            d.non_field_errors?.[0] ||
+            d.detail ||
+            d.erro)) ||
         'Não foi possível salvar.'
-      alert(typeof msg === 'string' ? msg : 'Não foi possível salvar.')
+      toast.error(typeof msg === 'string' ? msg : 'Não foi possível salvar.')
     } finally {
       setSaving(false)
     }
@@ -109,13 +126,13 @@ const StatusOrcamentosList = () => {
       await load()
     } catch (e) {
       const err = e.response?.data?.erro || e.response?.data?.detail
-      alert(typeof err === 'string' ? err : 'Não foi possível excluir.')
+      toast.error(typeof err === 'string' ? err : 'Não foi possível excluir.')
     } finally {
       setDeleting(false)
     }
   }
 
-  const colCount = podeConfig ? 4 : 3
+  const colCount = podeConfig ? 5 : 4
 
   if (loading && items.length === 0) {
     return <Loading fullScreen />
@@ -130,8 +147,7 @@ const StatusOrcamentosList = () => {
             Status de orçamentos
           </h1>
           <p className="text-secondary-600 mt-1 max-w-2xl">
-            Defina os status para acompanhar manualmente o andamento dos orçamentos (nome, ordem na lista e se
-            está ativo para seleção).
+            Defina os status para acompanhar os orçamentos e qual deles dispara a baixa automática de estoque.
           </p>
         </div>
         {podeConfig && (
@@ -149,6 +165,7 @@ const StatusOrcamentosList = () => {
               <th className="py-3 px-2 font-medium w-16">Ordem</th>
               <th className="py-3 px-2 font-medium">Nome exibido</th>
               <th className="py-3 px-2 font-medium">Ativo</th>
+              <th className="py-3 px-2 font-medium">Movimenta estoque</th>
               {podeConfig && <th className="py-3 px-2 font-medium text-right w-[120px]">Ações</th>}
             </tr>
           </thead>
@@ -167,6 +184,11 @@ const StatusOrcamentosList = () => {
                   <td className="py-3 px-2">
                     <Badge variant={row.ativo ? 'success' : 'secondary'}>
                       {row.ativo ? 'Sim' : 'Não'}
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-2">
+                    <Badge variant={row.movimenta_estoque_saida ? 'warning' : 'secondary'}>
+                      {row.movimenta_estoque_saida ? 'Saída automática' : 'Não'}
                     </Badge>
                   </td>
                   {podeConfig && (
@@ -231,6 +253,11 @@ const StatusOrcamentosList = () => {
             label="Ativo (aparece ao escolher status em orçamentos)"
             checked={form.ativo}
             onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))}
+          />
+          <Checkbox
+            label="Movimenta estoque (saída automática ao aplicar este status)"
+            checked={form.movimenta_estoque_saida}
+            onChange={(e) => setForm((f) => ({ ...f, movimenta_estoque_saida: e.target.checked }))}
           />
         </form>
       </Modal>

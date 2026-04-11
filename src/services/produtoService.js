@@ -25,4 +25,14 @@ export const produtoService = {
   delete: async (codigo) => {
     await api.delete(API_ENDPOINTS.produtos.delete(codigo))
   },
+
+  movimentarEstoque: async (codigo, data) => {
+    const response = await api.post(API_ENDPOINTS.produtos.movimentarEstoque(codigo), data)
+    return response.data
+  },
+
+  listMovimentacoes: async (codigo) => {
+    const response = await api.get(API_ENDPOINTS.produtos.movimentacoes(codigo))
+    return response.data
+  },
 }
