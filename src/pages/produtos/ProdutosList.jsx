@@ -12,6 +12,7 @@ import {
   ArrowDown,
   ChevronsUpDown,
   History,
+  Warehouse,
 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -19,6 +20,7 @@ import Input from '../../components/ui/Input'
 import Loading from '../../components/ui/Loading'
 import Modal from '../../components/ui/Modal'
 import { produtoService } from '../../services/produtoService'
+import { localEstoqueService } from '../../services/localEstoqueService'
 import { API_PAGE_SIZE, API_MAX_PAGE_SIZE } from '../../config/api'
 import {
   applyCurrencyMaskBRL,
@@ -102,6 +104,10 @@ const ProdutosList = () => {
     items: [],
     loading: false,
   })
+  const [locaisEstoque, setLocaisEstoque] = useState([])
+  const [localModal, setLocalModal] = useState({ open: false, editing: null })
+  const [localForm, setLocalForm] = useState({ nome: '', padrao: false, ordem: 0 })
+  const [localSaving, setLocalSaving] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil((totalCount || 0) / pageSize))
 
@@ -134,11 +140,26 @@ const ProdutosList = () => {
     setDeleteModal({ open: false, row: null })
     setMovModal({ open: false, row: null, tipo: 'entrada' })
     setHistModal({ open: false, row: null, items: [], loading: false })
+    setLocalModal({ open: false, editing: null })
   }, [empresaAtual?.id])
 
   useEffect(() => {
     load()
   }, [load])
+
+  const loadLocais = useCallback(async () => {
+    try {
+      const data = await localEstoqueService.list()
+      const rows = data.results || data || []
+      setLocaisEstoque(Array.isArray(rows) ? rows : [])
+    } catch {
+      setLocaisEstoque([])
+    }
+  }, [])
+
+  useEffect(() => {
+    loadLocais()
+  }, [loadLocais, empresaAtual?.id])
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -214,6 +235,40 @@ const ProdutosList = () => {
       alert(typeof msg === 'string' ? msg : 'Não foi possível salvar.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const salvarLocalEstoque = async (e) => {
+    e.preventDefault()
+    const nome = (localForm.nome || '').trim()
+    if (!nome) {
+      alert('Informe o nome do local.')
+      return
+    }
+    try {
+      setLocalSaving(true)
+      if (localModal.editing) {
+        await localEstoqueService.patch(localModal.editing.id, {
+          nome,
+          padrao: localForm.padrao,
+          ordem: Number(localForm.ordem) || 0,
+        })
+      } else {
+        await localEstoqueService.create({
+          nome,
+          padrao: localForm.padrao,
+          ordem: Number(localForm.ordem) || 0,
+        })
+      }
+      setLocalModal({ open: false, editing: null })
+      await loadLocais()
+    } catch (err) {
+      const d = err.response?.data
+      const msg =
+        (d && (d.nome?.[0] || d.padrao?.[0] || d.detail || d.erro)) || 'Não foi possível salvar o local.'
+      alert(typeof msg === 'string' ? msg : 'Não foi possível salvar o local.')
+    } finally {
+      setLocalSaving(false)
     }
   }
 
@@ -336,6 +391,74 @@ const ProdutosList = () => {
           </Button>
         </div>
       </Card>
+
+      {podeCadastrar && (
+        <Card className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+                <Warehouse className="w-5 h-5" aria-hidden />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-secondary-900">Locais de estoque</h2>
+                <p className="text-sm text-secondary-500 mt-0.5 max-w-xl">
+                  Depósitos da empresa atual. Saídas por status de orçamento usam o local escolhido na
+                  alteração de status (se houver mais de um).
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="shrink-0 self-start"
+              onClick={() => {
+                setLocalForm({
+                  nome: '',
+                  padrao: false,
+                  ordem: locaisEstoque.length,
+                })
+                setLocalModal({ open: true, editing: null })
+              }}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Novo local
+            </Button>
+          </div>
+          {locaisEstoque.length === 0 ? (
+            <p className="text-sm text-secondary-500">Nenhum local cadastrado — o sistema cria &quot;Principal&quot; na migração ou ao adicionar.</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {locaisEstoque.map((loc) => (
+                <li
+                  key={loc.id}
+                  className="inline-flex items-center gap-2 rounded-lg border border-secondary-200 bg-secondary-50/80 px-3 py-1.5 text-sm"
+                >
+                  <span className="font-medium text-secondary-800">{loc.nome}</span>
+                  {loc.padrao ? (
+                    <span className="text-xs text-primary-600 font-medium">padrão</span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="p-1 rounded hover:bg-white/80 text-secondary-600"
+                    title="Editar"
+                    onClick={() => {
+                      setLocalForm({
+                        nome: loc.nome || '',
+                        padrao: !!loc.padrao,
+                        ordem: loc.ordem ?? 0,
+                      })
+                      setLocalModal({ open: true, editing: loc })
+                    }}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
 
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
@@ -627,6 +750,12 @@ const ProdutosList = () => {
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-secondary-500">
+                      {m.local_estoque_nome ? (
+                        <>
+                          <span className="font-medium text-secondary-600">{m.local_estoque_nome}</span>
+                          <span className="text-secondary-300 hidden sm:inline">·</span>
+                        </>
+                      ) : null}
                       <span>{labelOrigemMov(m.origem)}</span>
                       {m.usuario_nome ? (
                         <>
@@ -738,6 +867,55 @@ const ProdutosList = () => {
         <p className="text-xs text-secondary-500 mt-2">
           Não é possível excluir se o produto estiver vinculado a algum item de orçamento.
         </p>
+      </Modal>
+
+      <Modal
+        isOpen={localModal.open}
+        onClose={() => !localSaving && setLocalModal({ open: false, editing: null })}
+        title={localModal.editing ? 'Editar local de estoque' : 'Novo local de estoque'}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setLocalModal({ open: false, editing: null })}
+              disabled={localSaving}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" form="form-local-estoque" variant="primary" isLoading={localSaving}>
+              Salvar
+            </Button>
+          </>
+        }
+      >
+        <form id="form-local-estoque" onSubmit={salvarLocalEstoque} className="space-y-4">
+          <Input
+            label="Nome"
+            value={localForm.nome}
+            onChange={(e) => setLocalForm((f) => ({ ...f, nome: e.target.value }))}
+            required
+            placeholder="Ex.: Principal, Depósito B, Loja"
+          />
+          <Input
+            label="Ordem"
+            type="number"
+            min="0"
+            value={String(localForm.ordem)}
+            onChange={(e) =>
+              setLocalForm((f) => ({ ...f, ordem: parseInt(e.target.value, 10) || 0 }))
+            }
+          />
+          <label className="flex items-center gap-2 text-sm text-secondary-700 cursor-pointer">
+            <input
+              type="checkbox"
+              className="rounded border-secondary-300"
+              checked={localForm.padrao}
+              onChange={(e) => setLocalForm((f) => ({ ...f, padrao: e.target.checked }))}
+            />
+            <span>Local padrão (pré-seleção quando há só um marcado)</span>
+          </label>
+        </form>
       </Modal>
     </div>
   )

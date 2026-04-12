@@ -100,6 +100,29 @@ html[data-theme='dark'] .app-modal-panel {
     0 25px 50px -12px rgba(0, 0, 0, 0.55);
 }
 
+/* Edição de usuário — permissões por módulo (modo escuro) */
+html[data-theme='dark'] .usuario-perm-segment-wrap {
+  background: rgba(30, 41, 59, 0.75) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+html[data-theme='dark'] .usuario-perm-active {
+  background: rgba(51, 65, 85, 0.95) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --tw-ring-color: rgba(148, 163, 184, 0.35);
+}
+html[data-theme='dark'] .usuario-modulos-panel {
+  background: rgba(15, 23, 42, 0.55) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+html[data-theme='dark'] .usuario-perm-row {
+  border-color: rgba(148, 163, 184, 0.22) !important;
+}
+html[data-theme='dark'] .usuario-perm-icon {
+  background: rgba(51, 65, 85, 0.75) !important;
+  color: #cbd5e1 !important;
+}
+
 html[data-theme='dark'] aside.app-sidebar {
   background: rgba(15, 23, 42, 0.92) !important;
   backdrop-filter: blur(14px);

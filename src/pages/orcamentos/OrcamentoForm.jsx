@@ -10,6 +10,7 @@ import Modal from '../../components/ui/Modal'
 import { usePermissoesModulos } from '../../hooks/usePermissoesModulos'
 import { orcamentoService } from '../../services/orcamentoService'
 import { produtoService } from '../../services/produtoService'
+import { localEstoqueService } from '../../services/localEstoqueService'
 import { statusOrcamentoService } from '../../services/statusOrcamentoService'
 import { API_MAX_PAGE_SIZE } from '../../config/api'
 import { formatCurrency } from '../../utils/formatters'
@@ -57,6 +58,42 @@ function ItemTipoSegment({ value, onChange, className = '' }) {
   )
 }
 
+/** Valor em reais ou percentual — mesmo padrão do Serviço/Produto (só texto, sem ícone duplicado) */
+function AjusteTipoSegment({ value, onChange, className = '' }) {
+  const seg =
+    'flex flex-1 min-w-[4.25rem] items-center justify-center px-3 py-3 rounded-lg text-sm font-semibold tabular-nums transition-all duration-200 sm:min-w-[5rem] sm:text-base'
+  return (
+    <div
+      className={`flex w-full min-w-[10.5rem] rounded-xl border border-secondary-200/90 bg-white p-0.5 shadow-sm ${className}`}
+      role="group"
+      aria-label="Tipo de ajuste: reais ou percentual"
+    >
+      <button
+        type="button"
+        className={`${seg} ${
+          value === 'valor'
+            ? 'bg-primary-600 text-white shadow-sm'
+            : 'text-secondary-600 hover:bg-secondary-50'
+        }`}
+        onClick={() => onChange('valor')}
+      >
+        R$
+      </button>
+      <button
+        type="button"
+        className={`${seg} ${
+          value === 'percentual'
+            ? 'bg-primary-600 text-white shadow-sm'
+            : 'text-secondary-600 hover:bg-secondary-50'
+        }`}
+        onClick={() => onChange('percentual')}
+      >
+        %
+      </button>
+    </div>
+  )
+}
+
 const OrcamentoForm = () => {
   const perm = usePermissoesModulos()
   const podeCadastrarProduto = perm.isStaff || perm.orcamentos_pode_cadastrar
@@ -91,6 +128,8 @@ const OrcamentoForm = () => {
   const [quickProdutoModal, setQuickProdutoModal] = useState({ open: false, rowIndex: null })
   const [quickProdutoForm, setQuickProdutoForm] = useState(emptyQuickProduto)
   const [quickProdutoSaving, setQuickProdutoSaving] = useState(false)
+  const [locaisEstoque, setLocaisEstoque] = useState([])
+  const [localEstoqueId, setLocalEstoqueId] = useState('')
 
   const carregarCatalogoProdutos = useCallback(async () => {
     try {
@@ -104,6 +143,22 @@ const OrcamentoForm = () => {
   useEffect(() => {
     carregarCatalogoProdutos()
   }, [carregarCatalogoProdutos])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await localEstoqueService.list()
+        const rows = data.results || data || []
+        if (!cancelled) setLocaisEstoque(Array.isArray(rows) ? rows : [])
+      } catch {
+        if (!cancelled) setLocaisEstoque([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -136,6 +191,11 @@ const OrcamentoForm = () => {
         (a.ordem ?? 0) - (b.ordem ?? 0) || (a.id ?? 0) - (b.id ?? 0)
     )
   }, [statusOptionsActive, statusExtra])
+
+  const statusSelecionado = useMemo(
+    () => statusSelectOptions.find((s) => String(s.id) === String(formData.status)),
+    [statusSelectOptions, formData.status]
+  )
 
   useEffect(() => {
     if (!editId) setStatusExtra(null)
@@ -394,6 +454,19 @@ const OrcamentoForm = () => {
       return
     }
 
+    const stMeta = statusSelectOptions.find((s) => s.id === statusFk)
+    if (
+      stMeta?.movimenta_estoque_saida &&
+      locaisEstoque.length > 1 &&
+      !localEstoqueId
+    ) {
+      setErrors({
+        local_estoque:
+          'Selecione o local de estoque para registrar a saída ao usar este status.',
+      })
+      return
+    }
+
     setSaving(true)
 
     try {
@@ -431,6 +504,11 @@ const OrcamentoForm = () => {
         condicoes_pagamento: formData.condicoes_pagamento?.trim() || null,
         prazo_entrega: formData.prazo_entrega?.trim() || null,
         observacoes: formData.observacoes?.trim() || null,
+        ...(stMeta?.movimenta_estoque_saida &&
+          locaisEstoque.length > 1 &&
+          localEstoqueId && {
+            local_estoque: parseInt(localEstoqueId, 10),
+          }),
       }
 
       const createPayload = {
@@ -448,6 +526,11 @@ const OrcamentoForm = () => {
         ...(formData.prazo_entrega?.trim() && { prazo_entrega: formData.prazo_entrega.trim() }),
         ...(formData.observacoes?.trim() && { observacoes: formData.observacoes.trim() }),
         ...(itensValidados.length > 0 && { itens: itensValidados }),
+        ...(stMeta?.movimenta_estoque_saida &&
+          locaisEstoque.length > 1 &&
+          localEstoqueId && {
+            local_estoque: parseInt(localEstoqueId, 10),
+          }),
       }
 
       if (isEditMode && editId) {
@@ -496,6 +579,14 @@ const OrcamentoForm = () => {
         }
         if (error.response.data.itens) {
           alert(`Erro nos itens: ${Array.isArray(error.response.data.itens) ? error.response.data.itens.join(', ') : error.response.data.itens}`)
+        }
+        const er = error.response.data.erro
+        if (er) {
+          alert(typeof er === 'string' ? er : JSON.stringify(er))
+        }
+        const le = error.response.data.local_estoque
+        if (le) {
+          alert(Array.isArray(le) ? le.join(' ') : String(le))
         }
       } else if (error.message) {
         alert(error.message)
@@ -575,6 +666,28 @@ const OrcamentoForm = () => {
             />
           </div>
 
+          {statusSelecionado?.movimenta_estoque_saida && locaisEstoque.length > 1 && (
+            <div>
+              <Select
+                label="Local de estoque (saída)"
+                value={localEstoqueId}
+                onChange={(e) => setLocalEstoqueId(e.target.value)}
+                error={errors.local_estoque}
+                placeholder="Onde sairá o material"
+                options={[
+                  { value: '', label: 'Selecione o depósito' },
+                  ...locaisEstoque.map((loc) => ({
+                    value: String(loc.id),
+                    label: `${loc.nome}${loc.padrao ? ' (padrão)' : ''}`,
+                  })),
+                ]}
+              />
+              <p className="mt-1 text-xs text-secondary-500">
+                Obrigatório ao usar um status que movimenta estoque e há mais de um depósito.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Input
               label="Prazo de Entrega"
@@ -629,7 +742,7 @@ const OrcamentoForm = () => {
 
           {/* Itens: lista compacta estilo planilha + segmento Serviço/Produto */}
           <div className="pt-6 border-t border-secondary-200">
-            <div className="sticky top-0 z-10 -mt-6 pt-6 pb-4 -mx-1 px-1 bg-white border-b border-secondary-100 mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="sticky top-0 z-[5] -mt-6 pt-6 pb-4 -mx-1 px-1 bg-white border-b border-secondary-100 mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <h3 className="text-lg font-semibold text-secondary-900 tracking-tight">
                   Itens do orçamento
@@ -682,7 +795,7 @@ const OrcamentoForm = () => {
                   <span className="sr-only">Ações</span>
                 </div>
 
-                <div className="divide-y divide-secondary-100 overflow-visible rounded-2xl border border-secondary-200/90 bg-white shadow-sm">
+                <div className="relative z-30 divide-y divide-secondary-100 overflow-visible rounded-2xl border border-secondary-200/90 bg-white shadow-sm">
                   {itens.map((item, index) => (
                     <div
                       key={item.id ?? `novo-${index}`}
@@ -822,15 +935,19 @@ const OrcamentoForm = () => {
 
                 {/* Desconto/Acréscimo - abaixo dos itens */}
                 {itens.length > 0 && (
-                  <Card className="p-4 border border-secondary-200">
-                    <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  <Card className="p-4 border border-secondary-200 overflow-visible mb-1">
+                    <label className="block text-sm font-medium text-secondary-700 mb-1">
                       Desconto ou Acréscimo
                     </label>
-                    <p className="text-sm text-secondary-500 mb-3">
-                      Valor negativo = desconto. Valor positivo = acréscimo. Ex: -20 para 20% de desconto, 50 para R$ 50 de acréscimo.
+                    <p className="text-xs text-secondary-500 mb-3 leading-relaxed sm:text-sm">
+                      Negativo desconta, positivo acrescenta. Com <span className="font-medium">%</span>, o
+                      valor incide sobre o subtotal.
                     </p>
-                    <div className="flex flex-wrap items-end gap-4">
-                      <div className="flex-1 min-w-[120px] max-w-[200px]">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:gap-4">
+                      <div className="min-w-0 sm:max-w-xl">
+                        <label className="block text-xs font-medium text-secondary-500 mb-1.5">
+                          Valor
+                        </label>
                         <Input
                           type="number"
                           step="0.01"
@@ -841,17 +958,13 @@ const OrcamentoForm = () => {
                           placeholder="0"
                         />
                       </div>
-                      <div className="w-24 shrink-0">
-                        <Select
+                      <div className="w-full sm:w-auto sm:shrink-0">
+                        <label className="mb-1.5 block text-xs font-medium text-secondary-500">
+                          Tipo
+                        </label>
+                        <AjusteTipoSegment
                           value={formData.ajuste_tipo}
-                          onChange={(e) =>
-                            setFormData({ ...formData, ajuste_tipo: e.target.value })
-                          }
-                          options={[
-                            { value: 'valor', label: 'R$' },
-                            { value: 'percentual', label: '%' },
-                          ]}
-                          className="w-full"
+                          onChange={(v) => setFormData({ ...formData, ajuste_tipo: v })}
                         />
                       </div>
                     </div>

@@ -95,7 +95,7 @@ const Select = forwardRef(
           </button>
 
           {isOpen && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-secondary-300 rounded-lg shadow-medium max-h-60 overflow-auto">
+            <div className="absolute z-[100] w-full mt-1 bg-white border border-secondary-300 rounded-lg shadow-medium max-h-60 overflow-auto">
               {options.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-secondary-500 text-center rounded-lg">
                   Nenhuma opção disponível

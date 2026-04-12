@@ -10,6 +10,7 @@ import Input from '../../components/ui/Input'
 import Select from '../../components/ui/Select'
 import { orcamentoService } from '../../services/orcamentoService'
 import { statusOrcamentoService } from '../../services/statusOrcamentoService'
+import { localEstoqueService } from '../../services/localEstoqueService'
 import {
   formatCurrency,
   formatDate,
@@ -39,6 +40,10 @@ const OrcamentoDetail = () => {
     valor_unitario: '',
   })
   const [statusChoices, setStatusChoices] = useState([])
+  const [locaisEstoque, setLocaisEstoque] = useState([])
+  const [statusModalPhase, setStatusModalPhase] = useState('list')
+  const [pendingStatusId, setPendingStatusId] = useState(null)
+  const [localEstoqueEscolhido, setLocalEstoqueEscolhido] = useState('')
 
   useEffect(() => {
     loadOrcamento()
@@ -56,6 +61,22 @@ const OrcamentoDetail = () => {
       }
     }
     load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await localEstoqueService.list()
+        const rows = data.results || data || []
+        if (!cancelled) setLocaisEstoque(Array.isArray(rows) ? rows : [])
+      } catch {
+        if (!cancelled) setLocaisEstoque([])
+      }
+    })()
     return () => {
       cancelled = true
     }
@@ -94,17 +115,43 @@ const OrcamentoDetail = () => {
     }
   }
 
-  const handleUpdateStatus = async (status) => {
+  const handleUpdateStatus = async (status, localEstoqueId = null) => {
     setSaving(true)
     try {
-      await orcamentoService.atualizarStatus(id, status)
+      await orcamentoService.atualizarStatus(id, status, localEstoqueId)
       setStatusModal(false)
+      setStatusModalPhase('list')
+      setPendingStatusId(null)
       loadOrcamento()
     } catch (error) {
-      alert('Erro ao atualizar status.')
+      const msg =
+        error.response?.data?.erro ||
+        error.response?.data?.local_estoque?.[0] ||
+        (typeof error.response?.data === 'object' && error.response?.data?.detail
+          ? String(error.response.data.detail)
+          : null) ||
+        'Erro ao atualizar status.'
+      alert(typeof msg === 'string' ? msg : JSON.stringify(msg))
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleClickStatusOpcao = (st) => {
+    if (st.movimenta_estoque_saida && locaisEstoque.length > 1) {
+      setPendingStatusId(st.id)
+      const padrao = locaisEstoque.find((l) => l.padrao)
+      setLocalEstoqueEscolhido(String(padrao?.id ?? locaisEstoque[0]?.id ?? ''))
+      setStatusModalPhase('local')
+      return
+    }
+    handleUpdateStatus(st.id, null)
+  }
+
+  const confirmarStatusComLocal = () => {
+    const lid = parseInt(localEstoqueEscolhido, 10)
+    if (!pendingStatusId || Number.isNaN(lid)) return
+    handleUpdateStatus(pendingStatusId, lid)
   }
 
   const handleGerarOrcamento = async () => {
@@ -186,7 +233,11 @@ const OrcamentoDetail = () => {
           {perm.orcamentos_pode_cadastrar && (
             <Button
               variant="primary"
-              onClick={() => setStatusModal(true)}
+              onClick={() => {
+                setStatusModalPhase('list')
+                setPendingStatusId(null)
+                setStatusModal(true)
+              }}
               className="flex items-center gap-2"
             >
               Alterar Status
@@ -550,43 +601,87 @@ const OrcamentoDetail = () => {
       {/* Status Modal */}
       <Modal
         isOpen={statusModal}
-        onClose={() => setStatusModal(false)}
-        title="Alterar Status"
+        onClose={() => {
+          setStatusModal(false)
+          setStatusModalPhase('list')
+          setPendingStatusId(null)
+        }}
+        title={
+          statusModalPhase === 'local'
+            ? 'Local de estoque para a saída'
+            : 'Alterar Status'
+        }
         footer={
           <>
             <Button
               variant="secondary"
-              onClick={() => setStatusModal(false)}
+              onClick={() => {
+                if (statusModalPhase === 'local') {
+                  setStatusModalPhase('list')
+                  setPendingStatusId(null)
+                } else {
+                  setStatusModal(false)
+                }
+              }}
               disabled={saving}
             >
-              Cancelar
+              {statusModalPhase === 'local' ? 'Voltar' : 'Cancelar'}
             </Button>
+            {statusModalPhase === 'local' ? (
+              <Button
+                variant="primary"
+                onClick={confirmarStatusComLocal}
+                disabled={saving || !localEstoqueEscolhido}
+              >
+                Confirmar
+              </Button>
+            ) : null}
           </>
         }
       >
-        <div className="space-y-2">
-          {(statusChoices.length
-            ? statusChoices
-            : orcamento.status != null
-              ? [
-                  {
-                    id: orcamento.status,
-                    nome: orcamento.status_nome || 'Status',
-                  },
-                ]
-              : []
-          ).map((st) => (
-            <Button
-              key={st.id}
-              variant={orcamento.status === st.id ? 'primary' : 'secondary'}
-              fullWidth
-              onClick={() => handleUpdateStatus(st.id)}
-              disabled={saving || orcamento.status === st.id}
+        {statusModalPhase === 'local' ? (
+          <div className="space-y-3">
+            <p className="text-sm text-secondary-600">
+              Este status movimenta estoque. Escolha o depósito de onde sairá o material.
+            </p>
+            <select
+              className="input-base w-full"
+              value={localEstoqueEscolhido}
+              onChange={(e) => setLocalEstoqueEscolhido(e.target.value)}
             >
-              {st.nome}
-            </Button>
-          ))}
-        </div>
+              {locaisEstoque.map((loc) => (
+                <option key={loc.id} value={String(loc.id)}>
+                  {loc.nome}
+                  {loc.padrao ? ' (padrão)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {(statusChoices.length
+              ? statusChoices
+              : orcamento.status != null
+                ? [
+                    {
+                      id: orcamento.status,
+                      nome: orcamento.status_nome || 'Status',
+                    },
+                  ]
+                : []
+            ).map((st) => (
+              <Button
+                key={st.id}
+                variant={orcamento.status === st.id ? 'primary' : 'secondary'}
+                fullWidth
+                onClick={() => handleClickStatusOpcao(st)}
+                disabled={saving || orcamento.status === st.id}
+              >
+                {st.nome}
+              </Button>
+            ))}
+          </div>
+        )}
       </Modal>
     </div>
   )

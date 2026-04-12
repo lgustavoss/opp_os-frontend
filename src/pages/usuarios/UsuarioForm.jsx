@@ -29,10 +29,10 @@ function nivelModulo(visualizar, elevado) {
 
 function PermissaoSegmentRow({ icon: Icon, titulo, descricao, value, options, onChange }) {
   return (
-    <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 border-b border-secondary-100/90 last:border-0 last:pb-0 first:pt-0">
+    <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 border-b border-secondary-100/90 last:border-0 last:pb-0 first:pt-0 usuario-perm-row">
       <div className="flex items-start gap-3 min-w-0">
         <div
-          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-secondary-100 text-secondary-500"
+          className="usuario-perm-icon mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-secondary-100 text-secondary-500"
           aria-hidden
         >
           <Icon className="h-4 w-4" strokeWidth={1.75} />
@@ -45,7 +45,7 @@ function PermissaoSegmentRow({ icon: Icon, titulo, descricao, value, options, on
         </div>
       </div>
       <div
-        className="flex w-full sm:w-auto rounded-2xl bg-secondary-100/80 p-1 self-stretch sm:self-auto sm:shrink-0"
+        className="usuario-perm-segment-wrap flex w-full sm:w-auto rounded-2xl bg-secondary-100/80 p-1 self-stretch sm:self-auto sm:shrink-0 border border-secondary-200/50"
         role="group"
         aria-label={titulo}
       >
@@ -59,7 +59,7 @@ function PermissaoSegmentRow({ icon: Icon, titulo, descricao, value, options, on
               className={[
                 'flex-1 sm:flex-initial min-w-0 sm:min-w-[4.25rem] px-2.5 sm:px-3 py-2 text-xs font-medium rounded-xl transition-all duration-200',
                 active
-                  ? 'bg-white text-secondary-900 shadow-sm ring-1 ring-secondary-900/5'
+                  ? 'bg-secondary-100 text-secondary-900 shadow-sm ring-1 ring-secondary-300/60 usuario-perm-active'
                   : 'text-secondary-500 hover:text-secondary-800',
               ].join(' ')}
             >
@@ -513,7 +513,7 @@ const UsuarioForm = () => {
                   Três níveis por área. &quot;Editar&quot; ou &quot;Configurar&quot; inclui visualização.
                 </p>
               </div>
-              <div className="mt-2 rounded-2xl border border-secondary-100 px-4 sm:px-5 bg-white">
+              <div className="usuario-modulos-panel mt-2 rounded-2xl border border-secondary-100 px-4 sm:px-5 bg-white/90">
                 <PermissaoSegmentRow
                   icon={Users}
                   titulo="Clientes"

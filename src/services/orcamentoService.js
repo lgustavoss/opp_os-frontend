@@ -18,10 +18,7 @@ export const orcamentoService = {
   },
 
   update: async (id, data) => {
-    const response = await api.patch(
-      API_ENDPOINTS.orcamentos.update(id),
-      data
-    )
+    const response = await api.patch(API_ENDPOINTS.orcamentos.update(id), data)
     return response.data
   },
 
@@ -38,10 +35,14 @@ export const orcamentoService = {
     return response.data
   },
 
-  atualizarStatus: async (id, status) => {
+  atualizarStatus: async (id, status, localEstoqueId = null) => {
+    const body = { status }
+    if (localEstoqueId != null) {
+      body.local_estoque = localEstoqueId
+    }
     const response = await api.patch(
       API_ENDPOINTS.orcamentos.atualizarStatus(id),
-      { status }
+      body
     )
     return response.data
   },

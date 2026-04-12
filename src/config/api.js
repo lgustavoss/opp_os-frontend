@@ -69,6 +69,10 @@ export const API_ENDPOINTS = {
     movimentarEstoque: (codigo) => `/produtos/${codigo}/movimentar_estoque/`,
     movimentacoes: (codigo) => `/produtos/${codigo}/movimentacoes/`,
   },
+  locaisEstoque: {
+    list: '/locais-estoque/',
+    detail: (id) => `/locais-estoque/${id}/`,
+  },
   // Itens de Orçamento
   itensOrcamento: {
     list: '/itens-orcamento/',
